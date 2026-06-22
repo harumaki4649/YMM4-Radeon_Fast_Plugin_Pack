@@ -1,0 +1,2 @@
+# YMM4-Radeon_Fast_Plugin_Pack
+YMM4を高速化する非公式プラグインです
