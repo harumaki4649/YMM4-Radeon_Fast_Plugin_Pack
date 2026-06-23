@@ -1,0 +1,2939 @@
+#include "AmfNative.h"
+
+#define NOMINMAX
+#include <windows.h>
+#include <d3d11.h>
+#include <dxgi.h>
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <deque>
+#include <mutex>
+#include <condition_variable>
+#include <thread>
+#include <cstring>
+
+#include <mfapi.h>
+#include <mfidl.h>
+#include <mferror.h>
+#include <mftransform.h>
+
+#include "AMF/core/Factory.h"
+#include "AMF/core/Buffer.h"
+#include "AMF/core/Surface.h"
+#include "AMF/components/Component.h"
+#include "AMF/components/VideoEncoderVCE.h"
+#include "AMF/components/VideoEncoderHEVC.h"
+#include "AMF/components/VideoConverter.h"
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "dxgi.lib")
+#pragma comment(lib, "mfplat.lib")
+#pragma comment(lib, "mfuuid.lib")
+#pragma comment(lib, "mf.lib")
+
+namespace
+{
+    struct FileWriter
+    {
+        HANDLE handle = INVALID_HANDLE_VALUE;
+        uint64_t position = 0; // Disk position after last actual write/seek
+        static constexpr size_t BUFFER_CAPACITY = 256 * 1024; // 256KB
+        std::vector<uint8_t> buffer;
+
+        bool Open(const std::wstring& path)
+        {
+            handle = CreateFileW(
+                path.c_str(),
+                GENERIC_READ | GENERIC_WRITE,
+                FILE_SHARE_READ,
+                nullptr,
+                CREATE_ALWAYS,
+                FILE_ATTRIBUTE_NORMAL,
+                nullptr);
+            if (handle == INVALID_HANDLE_VALUE)
+            {
+                return false;
+            }
+            position = 0;
+            buffer.clear();
+            buffer.reserve(BUFFER_CAPACITY);
+            return true;
+        }
+
+        bool IsOpen() const
+        {
+            return handle != INVALID_HANDLE_VALUE;
+        }
+
+        bool Flush()
+        {
+            if (!IsOpen())
+            {
+                return false;
+            }
+            if (buffer.empty())
+            {
+                return true;
+            }
+            DWORD written = 0;
+            if (!WriteFile(handle, buffer.data(), static_cast<DWORD>(buffer.size()), &written, nullptr))
+            {
+                return false;
+            }
+            if (written != buffer.size())
+            {
+                return false;
+            }
+            position += written;
+            buffer.clear();
+            return true;
+        }
+
+        bool Write(const void* data, size_t size)
+        {
+            if (!IsOpen())
+            {
+                return false;
+            }
+            if (size >= BUFFER_CAPACITY)
+            {
+                if (!Flush())
+                {
+                    return false;
+                }
+                DWORD written = 0;
+                if (!WriteFile(handle, data, static_cast<DWORD>(size), &written, nullptr))
+                {
+                    return false;
+                }
+                if (written != size)
+                {
+                    return false;
+                }
+                position += size;
+                return true;
+            }
+
+            if (buffer.size() + size > BUFFER_CAPACITY)
+            {
+                if (!Flush())
+                {
+                    return false;
+                }
+            }
+            const uint8_t* p = reinterpret_cast<const uint8_t*>(data);
+            buffer.insert(buffer.end(), p, p + size);
+            return true;
+        }
+
+        bool Seek(uint64_t pos)
+        {
+            if (!IsOpen())
+            {
+                return false;
+            }
+            if (!Flush())
+            {
+                return false;
+            }
+            LARGE_INTEGER li{};
+            li.QuadPart = static_cast<LONGLONG>(pos);
+            if (!SetFilePointerEx(handle, li, nullptr, FILE_BEGIN))
+            {
+                return false;
+            }
+            position = pos;
+            return true;
+        }
+
+        uint64_t Tell() const
+        {
+            return position + buffer.size();
+        }
+
+        void Close()
+        {
+            if (IsOpen())
+            {
+                Flush();
+                CloseHandle(handle);
+                handle = INVALID_HANDLE_VALUE;
+            }
+        }
+    };
+
+    struct Mp4Buffer
+    {
+        std::vector<uint8_t> data;
+
+        void WriteU8(uint8_t value) { data.push_back(value); }
+
+        void WriteU16(uint16_t value)
+        {
+            data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
+            data.push_back(static_cast<uint8_t>(value & 0xFF));
+        }
+
+        void WriteU32(uint32_t value)
+        {
+            data.push_back(static_cast<uint8_t>((value >> 24) & 0xFF));
+            data.push_back(static_cast<uint8_t>((value >> 16) & 0xFF));
+            data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
+            data.push_back(static_cast<uint8_t>(value & 0xFF));
+        }
+
+        void WriteU24(uint32_t value)
+        {
+            data.push_back(static_cast<uint8_t>((value >> 16) & 0xFF));
+            data.push_back(static_cast<uint8_t>((value >> 8) & 0xFF));
+            data.push_back(static_cast<uint8_t>(value & 0xFF));
+        }
+
+        void WriteU64(uint64_t value)
+        {
+            for (int i = 7; i >= 0; --i)
+            {
+                data.push_back(static_cast<uint8_t>((value >> (i * 8)) & 0xFF));
+            }
+        }
+
+        void WriteString4(const char* value)
+        {
+            data.push_back(static_cast<uint8_t>(value[0]));
+            data.push_back(static_cast<uint8_t>(value[1]));
+            data.push_back(static_cast<uint8_t>(value[2]));
+            data.push_back(static_cast<uint8_t>(value[3]));
+        }
+
+        void WriteBytes(const std::vector<uint8_t>& bytes)
+        {
+            data.insert(data.end(), bytes.begin(), bytes.end());
+        }
+
+        size_t BeginBox(const char* type)
+        {
+            size_t start = data.size();
+            WriteU32(0);
+            WriteString4(type);
+            return start;
+        }
+
+        void EndBox(size_t start)
+        {
+            uint32_t size = static_cast<uint32_t>(data.size() - start);
+            data[start + 0] = static_cast<uint8_t>((size >> 24) & 0xFF);
+            data[start + 1] = static_cast<uint8_t>((size >> 16) & 0xFF);
+            data[start + 2] = static_cast<uint8_t>((size >> 8) & 0xFF);
+            data[start + 3] = static_cast<uint8_t>(size & 0xFF);
+        }
+    };
+
+    struct EncoderState
+    {
+        HMODULE amfModule = nullptr;
+        AMFInit_Fn amfInit = nullptr;
+        amf::AMFFactory* factory = nullptr;
+        amf::AMFContextPtr context;
+        amf::AMFComponentPtr converter;
+        amf::AMFComponentPtr encoder;
+        amf::AMF_SURFACE_FORMAT inputFormat = amf::AMF_SURFACE_BGRA;
+        int qualityPreset = 1;
+        int rateControlMode = 0;
+        int bitrateKbps = 12000;
+        int maxBitrateKbps = 14400;
+        int queueDepth = 16;
+        bool preAnalysis = false;
+        bool enableVbaq = true;
+        bool highMotionQualityBoost = true;
+        uint64_t submittedFrames = 0;
+        uint64_t convertedFrames = 0;
+        uint64_t encodedOutputs = 0;
+        uint64_t converterInputFullCount = 0;
+        uint64_t converterRepeatCount = 0;
+        uint64_t encoderInputFullCount = 0;
+        uint64_t encoderRepeatCount = 0;
+        uint64_t audioNeedInputCount = 0;
+        uint64_t profileFrames = 0;
+        int64_t profileStartTick = 0;
+        double profileNativeMs = 0;
+        double profileEnsureTextureMs = 0;
+        double profileCreateSurfaceMs = 0;
+        double profileConvertSubmitMs = 0;
+        double profileConvertQueryMs = 0;
+        double profileEncoderSubmitMs = 0;
+        double profileDrainMs = 0;
+        double profileMaxNativeMs = 0;
+        double profileMaxEnsureTextureMs = 0;
+        double profileMaxCreateSurfaceMs = 0;
+        double profileMaxConvertSubmitMs = 0;
+        double profileMaxConvertQueryMs = 0;
+        double profileMaxEncoderSubmitMs = 0;
+        double profileMaxDrainMs = 0;
+        uint64_t profileSlowFrames = 0;
+        ID3D11Device* device = nullptr;
+        ID3D11DeviceContext* deviceContext = nullptr;
+        ID3D11Texture2D* inputTexture = nullptr;
+        DXGI_FORMAT inputTextureFormat = DXGI_FORMAT_UNKNOWN;
+        std::mutex fileMutex;
+        std::mutex logMutex;
+        std::mutex writerMutex;
+        std::condition_variable writerCv;
+        std::thread writerThread;
+        bool writerStarted = false;
+        bool writerStop = false;
+        bool writerError = false;
+        struct EncodedSample
+        {
+            std::vector<uint8_t> data;
+            bool keyframe = false;
+            bool isAudio = false;
+            uint32_t audioDuration = 0;
+        };
+        std::deque<EncodedSample> sampleQueue;
+        uint64_t writerVideoSamples = 0;
+        uint64_t writerAudioSamples = 0;
+        uint64_t writerBytes = 0;
+        uint64_t writerSlowWrites = 0;
+        uint64_t writerTotalVideoSamples = 0;
+        uint64_t writerTotalAudioSamples = 0;
+        uint64_t writerTotalBytes = 0;
+        uint64_t writerTotalSlowWrites = 0;
+        size_t writerTotalMaxQueueDepth = 0;
+        double writerTotalWriteMs = 0;
+        double writerTotalMaxWriteMs = 0;
+        size_t writerMaxQueueDepth = 0;
+        double writerWriteMs = 0;
+        double writerMaxWriteMs = 0;
+        int width = 0;
+        int height = 0;
+        int fps = 30;
+        uint64_t frameIndex = 0;
+        bool writerInitialized = false;
+        bool mp4Finalized = false;
+        bool isHevc = false;
+        FileWriter file;
+        uint64_t mdatHeaderOffset = 0;
+        uint64_t mdatLargeSizeOffset = 0;
+        uint64_t mdatDataOffset = 0;
+        std::vector<uint32_t> sampleSizes;
+        std::vector<uint64_t> sampleOffsets;
+        std::vector<uint32_t> syncSamples;
+        std::vector<uint8_t> codecPrivate;
+        bool mfStarted = false;
+        bool comInitialized = false;
+        bool audioInitialized = false;
+        int audioSampleRate = 0;
+        int audioChannels = 0;
+        uint32_t audioBitrate = 192000;
+        uint64_t audioSampleTotal = 0;
+        uint64_t audioFrameIndex = 0;
+        std::vector<int16_t> audioPcmBuffer;
+        size_t audioPcmRead = 0;
+        std::vector<uint32_t> audioSampleSizes;
+        std::vector<uint64_t> audioSampleOffsets;
+        std::vector<uint32_t> audioSampleDurations;
+        std::vector<uint8_t> audioSpecificConfig;
+        IMFTransform* aacEncoder = nullptr;
+        std::wstring outputPath;
+        std::wstring lastError;
+        bool hasError = false;
+        bool logEnabled = false;
+        HANDLE logFile = INVALID_HANDLE_VALUE;
+
+        // Texture pool for zero-copy from managed side
+        static constexpr int POOL_SIZE = 64;
+        struct PoolSlot
+        {
+            ID3D11Texture2D* texture = nullptr;
+            amf::AMFSurfacePtr cachedSurface;
+            bool inUse = false;
+        };
+        PoolSlot pool[POOL_SIZE]{};
+        std::mutex poolMutex;
+    };
+
+    std::vector<uint8_t> BuildAacSpecificConfig(int sampleRate, int channels);
+    bool ProcessEncodedBitstream(EncoderState* state, const uint8_t* data, size_t size);
+    bool DrainAmfOutput(EncoderState* state, bool waitForEof);
+    void OpenLog(EncoderState* state);
+    void CloseLog(EncoderState* state);
+    void LogLine(EncoderState* state, const std::wstring& line);
+    bool ProcessAudioOutput(EncoderState* state);
+    bool EncodeAudioFrame(EncoderState* state, const int16_t* pcm, uint32_t frameSamplesPerChannel);
+    bool FlushAudio(EncoderState* state);
+    void StartWriterThread(EncoderState* state);
+    void StopWriterThread(EncoderState* state);
+    DXGI_FORMAT NormalizeInputFormat(DXGI_FORMAT format);
+    std::wstring DxgiFormatName(DXGI_FORMAT format);
+    void LogAdapterInfo(EncoderState* state, ID3D11Device* device);
+    bool EnsureInputTexture(EncoderState* state, ID3D11Texture2D* source);
+
+    int64_t NowQpc()
+    {
+        LARGE_INTEGER value{};
+        QueryPerformanceCounter(&value);
+        return value.QuadPart;
+    }
+
+    double QpcElapsedMs(int64_t startTick)
+    {
+        LARGE_INTEGER frequency{};
+        QueryPerformanceFrequency(&frequency);
+        const int64_t elapsed = NowQpc() - startTick;
+        return static_cast<double>(elapsed) * 1000.0 / static_cast<double>(frequency.QuadPart);
+    }
+
+    double QpcElapsedMs(int64_t startTick, int64_t endTick)
+    {
+        LARGE_INTEGER frequency{};
+        QueryPerformanceFrequency(&frequency);
+        const int64_t elapsed = endTick - startTick;
+        return static_cast<double>(elapsed) * 1000.0 / static_cast<double>(frequency.QuadPart);
+    }
+
+    void SetError(EncoderState* state, const std::wstring& message)
+    {
+        if (state)
+        {
+            state->hasError = true;
+            state->lastError = message;
+            LogLine(state, L"[error] " + message);
+        }
+    }
+
+    bool CheckStatus(EncoderState* state, AMF_RESULT status, const wchar_t* message)
+    {
+        if (status == AMF_OK)
+        {
+            return true;
+        }
+
+        std::wstring error = message;
+        error += L" (";
+        error += std::to_wstring(static_cast<int>(status));
+        error += L")";
+        SetError(state, error);
+        return false;
+    }
+
+    void OpenLog(EncoderState* state)
+    {
+        if (!state || !state->logEnabled || state->logFile != INVALID_HANDLE_VALUE || state->outputPath.empty())
+        {
+            return;
+        }
+
+        std::wstring path = state->outputPath + L".amf_log.txt";
+        state->logFile = CreateFileW(
+            path.c_str(),
+            FILE_APPEND_DATA,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            nullptr,
+            OPEN_ALWAYS,
+            FILE_ATTRIBUTE_NORMAL,
+            nullptr);
+    }
+
+    void CloseLog(EncoderState* state)
+    {
+        if (!state || state->logFile == INVALID_HANDLE_VALUE)
+        {
+            return;
+        }
+        CloseHandle(state->logFile);
+        state->logFile = INVALID_HANDLE_VALUE;
+    }
+
+    void LogLine(EncoderState* state, const std::wstring& line)
+    {
+        if (!state || !state->logEnabled)
+        {
+            return;
+        }
+        if (state->logFile == INVALID_HANDLE_VALUE)
+        {
+            OpenLog(state);
+        }
+        if (state->logFile == INVALID_HANDLE_VALUE)
+        {
+            return;
+        }
+
+        SYSTEMTIME st{};
+        GetLocalTime(&st);
+        wchar_t prefix[64]{};
+        swprintf_s(prefix, L"%04u-%02u-%02u %02u:%02u:%02u.%03u [t%lu] ",
+            st.wYear, st.wMonth, st.wDay,
+            st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
+            GetCurrentThreadId());
+
+        std::wstring full = prefix + line + L"\r\n";
+        int bytesNeeded = WideCharToMultiByte(CP_UTF8, 0, full.c_str(), static_cast<int>(full.size()), nullptr, 0, nullptr, nullptr);
+        if (bytesNeeded <= 0)
+        {
+            return;
+        }
+
+        std::string utf8(bytesNeeded, '\0');
+        WideCharToMultiByte(CP_UTF8, 0, full.c_str(), static_cast<int>(full.size()), &utf8[0], bytesNeeded, nullptr, nullptr);
+
+        std::lock_guard<std::mutex> lock(state->logMutex);
+        DWORD written = 0;
+        WriteFile(state->logFile, utf8.data(), static_cast<DWORD>(utf8.size()), &written, nullptr);
+    }
+
+    int ClampInt(int value, int minValue, int maxValue)
+    {
+        if (value < minValue) return minValue;
+        if (value > maxValue) return maxValue;
+        return value;
+    }
+
+    float ClampFloat(float value, float minValue, float maxValue)
+    {
+        if (value < minValue) return minValue;
+        if (value > maxValue) return maxValue;
+        return value;
+    }
+
+    uint64_t MaxU64(uint64_t a, uint64_t b)
+    {
+        return a > b ? a : b;
+    }
+
+    bool WriteU32BE(FileWriter& file, uint32_t value)
+    {
+        uint8_t bytes[4] = {
+            static_cast<uint8_t>((value >> 24) & 0xFF),
+            static_cast<uint8_t>((value >> 16) & 0xFF),
+            static_cast<uint8_t>((value >> 8) & 0xFF),
+            static_cast<uint8_t>(value & 0xFF)
+        };
+        return file.Write(bytes, sizeof(bytes));
+    }
+
+    bool WriteU64BE(FileWriter& file, uint64_t value)
+    {
+        uint8_t bytes[8];
+        for (int i = 7; i >= 0; --i)
+        {
+            bytes[7 - i] = static_cast<uint8_t>((value >> (i * 8)) & 0xFF);
+        }
+        return file.Write(bytes, sizeof(bytes));
+    }
+
+    bool WriteString4(FileWriter& file, const char* value)
+    {
+        return file.Write(value, 4);
+    }
+
+    bool WriteFtyp(FileWriter& file, bool hevc)
+    {
+        const char* brand = hevc ? "hvc1" : "avc1";
+        const uint32_t boxSize = 32;
+        return WriteU32BE(file, boxSize)
+            && WriteString4(file, "ftyp")
+            && WriteString4(file, "isom")
+            && WriteU32BE(file, 0x00000200)
+            && WriteString4(file, "isom")
+            && WriteString4(file, "iso2")
+            && WriteString4(file, brand)
+            && WriteString4(file, "mp41");
+    }
+
+    bool InitializeMp4Writer(EncoderState* state, bool hevc, const std::vector<uint8_t>& codecPrivate)
+    {
+        if (state->writerInitialized)
+        {
+            if (!codecPrivate.empty() && state->codecPrivate.empty())
+            {
+                state->codecPrivate = codecPrivate;
+            }
+            return true;
+        }
+
+        if (!state->file.Open(state->outputPath))
+        {
+            SetError(state, L"Failed to open output file.");
+            return false;
+        }
+
+        state->isHevc = hevc;
+        if (!codecPrivate.empty())
+        {
+            state->codecPrivate = codecPrivate;
+        }
+
+        if (!WriteFtyp(state->file, hevc))
+        {
+            SetError(state, L"Failed to write ftyp.");
+            return false;
+        }
+
+        state->mdatHeaderOffset = state->file.Tell();
+        if (!WriteU32BE(state->file, 1) || !WriteString4(state->file, "mdat"))
+        {
+            SetError(state, L"Failed to write mdat header.");
+            return false;
+        }
+
+        state->mdatLargeSizeOffset = state->file.Tell();
+        if (!WriteU64BE(state->file, 0))
+        {
+            SetError(state, L"Failed to write mdat size.");
+            return false;
+        }
+
+        state->mdatDataOffset = state->file.Tell();
+        state->writerInitialized = true;
+        return true;
+    }
+
+    bool InitializeAudioEncoder(EncoderState* state, int sampleRate, int channels)
+    {
+        if (!state)
+        {
+            return false;
+        }
+
+        if (state->audioInitialized)
+        {
+            if (state->audioSampleRate != sampleRate || state->audioChannels != channels)
+            {
+                SetError(state, L"Audio format mismatch.");
+                return false;
+            }
+            return true;
+        }
+
+        HRESULT hr = MFStartup(MF_VERSION);
+        if (FAILED(hr))
+        {
+            SetError(state, L"MFStartup failed.");
+            return false;
+        }
+        state->mfStarted = true;
+
+        HRESULT coHr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+        if (SUCCEEDED(coHr))
+        {
+            state->comInitialized = true;
+        }
+
+        MFT_REGISTER_TYPE_INFO inputType = { MFMediaType_Audio, MFAudioFormat_PCM };
+        MFT_REGISTER_TYPE_INFO outputType = { MFMediaType_Audio, MFAudioFormat_AAC };
+        IMFActivate** activates = nullptr;
+        UINT32 count = 0;
+        hr = MFTEnumEx(
+            MFT_CATEGORY_AUDIO_ENCODER,
+            MFT_ENUM_FLAG_ALL,
+            &inputType,
+            &outputType,
+            &activates,
+            &count);
+
+        if (FAILED(hr) || count == 0)
+        {
+            if (activates)
+            {
+                CoTaskMemFree(activates);
+            }
+            SetError(state, L"AAC encoder not found.");
+            return false;
+        }
+
+        hr = activates[0]->ActivateObject(IID_PPV_ARGS(&state->aacEncoder));
+        for (UINT32 i = 0; i < count; ++i)
+        {
+            activates[i]->Release();
+        }
+        CoTaskMemFree(activates);
+
+        if (FAILED(hr))
+        {
+            SetError(state, L"Failed to activate AAC encoder.");
+            return false;
+        }
+
+        IMFMediaType* inType = nullptr;
+        hr = MFCreateMediaType(&inType);
+        if (FAILED(hr))
+        {
+            SetError(state, L"MFCreateMediaType failed.");
+            return false;
+        }
+        inType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        inType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_PCM);
+        inType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate);
+        inType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, channels);
+        inType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
+        inType->SetUINT32(MF_MT_AUDIO_BLOCK_ALIGNMENT, static_cast<UINT32>(channels * 2));
+        inType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, static_cast<UINT32>(sampleRate * channels * 2));
+
+        hr = state->aacEncoder->SetInputType(0, inType, 0);
+        inType->Release();
+        if (FAILED(hr))
+        {
+            SetError(state, L"AAC SetInputType failed.");
+            return false;
+        }
+
+        IMFMediaType* outType = nullptr;
+        hr = MFCreateMediaType(&outType);
+        if (FAILED(hr))
+        {
+            SetError(state, L"MFCreateMediaType failed.");
+            return false;
+        }
+        outType->SetGUID(MF_MT_MAJOR_TYPE, MFMediaType_Audio);
+        outType->SetGUID(MF_MT_SUBTYPE, MFAudioFormat_AAC);
+        outType->SetUINT32(MF_MT_AUDIO_SAMPLES_PER_SECOND, sampleRate);
+        outType->SetUINT32(MF_MT_AUDIO_NUM_CHANNELS, channels);
+        outType->SetUINT32(MF_MT_AUDIO_BITS_PER_SAMPLE, 16);
+        outType->SetUINT32(MF_MT_AUDIO_AVG_BYTES_PER_SECOND, state->audioBitrate / 8);
+        outType->SetUINT32(MF_MT_AAC_PAYLOAD_TYPE, 0);
+        outType->SetUINT32(MF_MT_AAC_AUDIO_PROFILE_LEVEL_INDICATION, 0x29);
+
+        hr = state->aacEncoder->SetOutputType(0, outType, 0);
+        outType->Release();
+        if (FAILED(hr))
+        {
+            SetError(state, L"AAC SetOutputType failed.");
+            return false;
+        }
+
+        state->audioSpecificConfig = BuildAacSpecificConfig(sampleRate, channels);
+
+        state->aacEncoder->ProcessMessage(MFT_MESSAGE_NOTIFY_BEGIN_STREAMING, 0);
+        state->aacEncoder->ProcessMessage(MFT_MESSAGE_NOTIFY_START_OF_STREAM, 0);
+
+        state->audioSampleRate = sampleRate;
+        state->audioChannels = channels;
+        state->audioInitialized = true;
+        return true;
+    }
+
+    bool ProcessAudioOutput(EncoderState* state)
+    {
+        if (!state || !state->aacEncoder)
+        {
+            return false;
+        }
+
+        MFT_OUTPUT_STREAM_INFO info{};
+        HRESULT hr = state->aacEncoder->GetOutputStreamInfo(0, &info);
+        if (FAILED(hr))
+        {
+            SetError(state, L"AAC GetOutputStreamInfo failed.");
+            return false;
+        }
+        if (info.cbSize == 0)
+        {
+            info.cbSize = 4096;
+        }
+
+        while (true)
+        {
+            IMFSample* outSample = nullptr;
+            IMFMediaBuffer* buffer = nullptr;
+
+            hr = MFCreateSample(&outSample);
+            if (FAILED(hr))
+            {
+                SetError(state, L"MFCreateSample failed.");
+                return false;
+            }
+
+            hr = MFCreateMemoryBuffer(info.cbSize, &buffer);
+            if (FAILED(hr))
+            {
+                outSample->Release();
+                SetError(state, L"MFCreateMemoryBuffer failed.");
+                return false;
+            }
+            outSample->AddBuffer(buffer);
+            buffer->Release();
+
+            MFT_OUTPUT_DATA_BUFFER output{};
+            output.pSample = outSample;
+            DWORD status = 0;
+            hr = state->aacEncoder->ProcessOutput(0, 1, &output, &status);
+            if (hr == MF_E_TRANSFORM_STREAM_CHANGE)
+            {
+                IMFMediaType* newType = nullptr;
+                if (SUCCEEDED(state->aacEncoder->GetOutputAvailableType(0, 0, &newType)))
+                {
+                    state->aacEncoder->SetOutputType(0, newType, 0);
+                    newType->Release();
+                }
+                outSample->Release();
+                continue;
+            }
+            if (hr == MF_E_TRANSFORM_NEED_MORE_INPUT)
+            {
+                outSample->Release();
+                ++state->audioNeedInputCount;
+                if (state->audioNeedInputCount <= 3 || (state->audioNeedInputCount % 1000) == 0)
+                {
+                    LogLine(state, L"audio output need more input count=" + std::to_wstring(state->audioNeedInputCount));
+                }
+                break;
+            }
+            if (FAILED(hr))
+            {
+                outSample->Release();
+                SetError(state, L"AAC ProcessOutput failed.");
+                return false;
+            }
+
+            IMFMediaBuffer* outBuffer = nullptr;
+            hr = outSample->GetBufferByIndex(0, &outBuffer);
+            if (FAILED(hr))
+            {
+                outSample->Release();
+                SetError(state, L"AAC GetBuffer failed.");
+                return false;
+            }
+
+            BYTE* data = nullptr;
+            DWORD maxLen = 0;
+            DWORD curLen = 0;
+            hr = outBuffer->Lock(&data, &maxLen, &curLen);
+            if (FAILED(hr))
+            {
+                outBuffer->Release();
+                outSample->Release();
+                SetError(state, L"AAC buffer lock failed.");
+                return false;
+            }
+
+            if (curLen > 0)
+            {
+                if (!state->writerStarted)
+                {
+                    StartWriterThread(state);
+                }
+                if (state->writerError)
+                {
+                    outBuffer->Unlock();
+                    outBuffer->Release();
+                    outSample->Release();
+                    SetError(state, L"Writer thread error.");
+                    return false;
+                }
+
+                std::vector<uint8_t> payload(data, data + curLen);
+                {
+                    std::lock_guard<std::mutex> lock(state->writerMutex);
+                    state->sampleQueue.push_back({ std::move(payload), false, true, 1024 });
+                    state->writerMaxQueueDepth = std::max(state->writerMaxQueueDepth, state->sampleQueue.size());
+                    state->writerTotalMaxQueueDepth = std::max(state->writerTotalMaxQueueDepth, state->sampleQueue.size());
+                }
+                state->writerCv.notify_one();
+            }
+
+            outBuffer->Unlock();
+            outBuffer->Release();
+            outSample->Release();
+        }
+
+        return true;
+    }
+
+    bool EncodeAudioFrame(EncoderState* state, const int16_t* pcm, uint32_t frameSamplesPerChannel)
+    {
+        if (!state || !state->aacEncoder)
+        {
+            return false;
+        }
+
+        const uint32_t channels = static_cast<uint32_t>(state->audioChannels);
+        const uint32_t sampleCount = frameSamplesPerChannel * channels;
+        const uint32_t byteCount = sampleCount * 2;
+
+        IMFSample* sample = nullptr;
+        IMFMediaBuffer* buffer = nullptr;
+        HRESULT hr = MFCreateSample(&sample);
+        if (FAILED(hr))
+        {
+            SetError(state, L"MFCreateSample failed.");
+            return false;
+        }
+
+        hr = MFCreateMemoryBuffer(byteCount, &buffer);
+        if (FAILED(hr))
+        {
+            sample->Release();
+            SetError(state, L"MFCreateMemoryBuffer failed.");
+            return false;
+        }
+
+        BYTE* dest = nullptr;
+        DWORD maxLen = 0;
+        DWORD curLen = 0;
+        hr = buffer->Lock(&dest, &maxLen, &curLen);
+        if (FAILED(hr))
+        {
+            buffer->Release();
+            sample->Release();
+            SetError(state, L"Audio buffer lock failed.");
+            return false;
+        }
+
+        memcpy(dest, pcm, byteCount);
+        buffer->Unlock();
+        buffer->SetCurrentLength(byteCount);
+        sample->AddBuffer(buffer);
+        buffer->Release();
+
+        const LONGLONG duration = static_cast<LONGLONG>(frameSamplesPerChannel) * 10000000LL / state->audioSampleRate;
+        const LONGLONG time = static_cast<LONGLONG>(state->audioFrameIndex) * duration;
+        sample->SetSampleTime(time);
+        sample->SetSampleDuration(duration);
+        state->audioFrameIndex++;
+
+        hr = state->aacEncoder->ProcessInput(0, sample, 0);
+        if (hr == MF_E_NOTACCEPTING)
+        {
+            if (!ProcessAudioOutput(state))
+            {
+                sample->Release();
+                return false;
+            }
+            hr = state->aacEncoder->ProcessInput(0, sample, 0);
+        }
+        sample->Release();
+
+        if (FAILED(hr))
+        {
+            SetError(state, L"AAC ProcessInput failed.");
+            return false;
+        }
+
+        if (!ProcessAudioOutput(state))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    bool FlushAudio(EncoderState* state)
+    {
+        if (!state || !state->audioInitialized || !state->aacEncoder)
+        {
+            return true;
+        }
+
+        LogLine(state, L"flush audio start");
+        const uint32_t frameSamples = 1024;
+        const uint32_t channels = static_cast<uint32_t>(state->audioChannels);
+        const uint32_t frameCount = frameSamples * channels;
+
+        if (state->audioPcmBuffer.size() > state->audioPcmRead)
+        {
+            size_t remain = state->audioPcmBuffer.size() - state->audioPcmRead;
+            std::vector<int16_t> frame(frameCount, 0);
+            size_t toCopy = std::min<size_t>(remain, frameCount);
+            memcpy(frame.data(), state->audioPcmBuffer.data() + state->audioPcmRead, toCopy * sizeof(int16_t));
+            if (!EncodeAudioFrame(state, frame.data(), frameSamples))
+            {
+                return false;
+            }
+            state->audioPcmRead += toCopy;
+        }
+
+        state->aacEncoder->ProcessMessage(MFT_MESSAGE_COMMAND_DRAIN, 0);
+        if (!ProcessAudioOutput(state))
+        {
+            return false;
+        }
+
+        LogLine(state, L"flush audio done");
+        return true;
+    }
+
+    void WriteMatrix(Mp4Buffer& buffer)
+    {
+        buffer.WriteU32(0x00010000);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0x00010000);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0);
+        buffer.WriteU32(0x40000000);
+    }
+
+    void WriteDescriptorSize(Mp4Buffer& buffer, size_t size)
+    {
+        uint8_t bytes[4] = {};
+        int count = 0;
+        do
+        {
+            bytes[count++] = static_cast<uint8_t>(size & 0x7F);
+            size >>= 7;
+        } while (size > 0 && count < 4);
+
+        for (int i = count - 1; i >= 0; --i)
+        {
+            uint8_t value = bytes[i];
+            if (i != 0)
+            {
+                value |= 0x80;
+            }
+            buffer.WriteU8(value);
+        }
+    }
+
+    void WriteDescriptor(Mp4Buffer& buffer, uint8_t tag, const std::vector<uint8_t>& payload)
+    {
+        buffer.WriteU8(tag);
+        WriteDescriptorSize(buffer, payload.size());
+        buffer.WriteBytes(payload);
+    }
+
+    std::vector<uint8_t> BuildAacSpecificConfig(int sampleRate, int channels)
+    {
+        int sampleRateIndex = 3;
+        struct RateMap { int rate; int index; };
+        const RateMap rates[] = {
+            { 96000, 0 }, { 88200, 1 }, { 64000, 2 }, { 48000, 3 }, { 44100, 4 }, { 32000, 5 },
+            { 24000, 6 }, { 22050, 7 }, { 16000, 8 }, { 12000, 9 }, { 11025, 10 }, { 8000, 11 }, { 7350, 12 }
+        };
+        for (const auto& r : rates)
+        {
+            if (r.rate == sampleRate)
+            {
+                sampleRateIndex = r.index;
+                break;
+            }
+        }
+
+        const uint8_t audioObjectType = 2; // AAC LC
+        const uint8_t channelConfig = static_cast<uint8_t>(ClampInt(channels, 1, 7));
+
+        std::vector<uint8_t> asc;
+        asc.resize(2);
+        asc[0] = static_cast<uint8_t>((audioObjectType << 3) | ((sampleRateIndex & 0x0E) >> 1));
+        asc[1] = static_cast<uint8_t>(((sampleRateIndex & 0x01) << 7) | (channelConfig << 3));
+        return asc;
+    }
+
+    std::vector<uint8_t> BuildEsds(const std::vector<uint8_t>& asc, uint32_t bitrate)
+    {
+        Mp4Buffer esds;
+        esds.WriteU32(0);
+
+        Mp4Buffer decSpecific;
+        decSpecific.WriteBytes(asc);
+
+        Mp4Buffer decConfig;
+        decConfig.WriteU8(0x40); // objectTypeIndication
+        decConfig.WriteU8(0x15); // streamType audio
+        decConfig.WriteU24(0);   // bufferSizeDB
+        decConfig.WriteU32(bitrate);
+        decConfig.WriteU32(bitrate);
+        WriteDescriptor(decConfig, 0x05, decSpecific.data);
+
+        Mp4Buffer slConfig;
+        slConfig.WriteU8(0x02);
+
+        Mp4Buffer esDesc;
+        esDesc.WriteU16(1);
+        esDesc.WriteU8(0);
+        WriteDescriptor(esDesc, 0x04, decConfig.data);
+        WriteDescriptor(esDesc, 0x06, slConfig.data);
+
+        WriteDescriptor(esds, 0x03, esDesc.data);
+        return esds.data;
+    }
+
+    void WriteStts(Mp4Buffer& buffer, const std::vector<uint32_t>& durations)
+    {
+        size_t sttsStart = buffer.BeginBox("stts");
+        buffer.WriteU32(0);
+        if (durations.empty())
+        {
+            buffer.WriteU32(0);
+            buffer.EndBox(sttsStart);
+            return;
+        }
+
+        struct Entry { uint32_t count; uint32_t duration; };
+        std::vector<Entry> entries;
+        for (uint32_t d : durations)
+        {
+            if (entries.empty() || entries.back().duration != d)
+            {
+                entries.push_back({ 1, d });
+            }
+            else
+            {
+                entries.back().count++;
+            }
+        }
+
+        buffer.WriteU32(static_cast<uint32_t>(entries.size()));
+        for (const auto& e : entries)
+        {
+            buffer.WriteU32(e.count);
+            buffer.WriteU32(e.duration);
+        }
+        buffer.EndBox(sttsStart);
+    }
+
+    void AppendAudioTrak(Mp4Buffer& moov, const EncoderState* state, uint32_t trackId)
+    {
+        const uint32_t timescale = static_cast<uint32_t>(state->audioSampleRate);
+        const uint64_t duration = state->audioSampleTotal;
+        const uint32_t sampleCount = static_cast<uint32_t>(state->audioSampleSizes.size());
+        const uint32_t channels = static_cast<uint32_t>(state->audioChannels);
+
+        size_t trakStart = moov.BeginBox("trak");
+
+        size_t tkhdStart = moov.BeginBox("tkhd");
+        moov.WriteU32(0x00000007);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(trackId);
+        moov.WriteU32(0);
+        moov.WriteU32(static_cast<uint32_t>(duration));
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0x0100);
+        moov.WriteU16(0);
+        WriteMatrix(moov);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.EndBox(tkhdStart);
+
+        size_t mdiaStart = moov.BeginBox("mdia");
+
+        size_t mdhdStart = moov.BeginBox("mdhd");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(timescale);
+        moov.WriteU32(static_cast<uint32_t>(duration));
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.EndBox(mdhdStart);
+
+        size_t hdlrStart = moov.BeginBox("hdlr");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteString4("soun");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        const char handlerName[] = "SoundHandler";
+        moov.data.insert(moov.data.end(), handlerName, handlerName + sizeof(handlerName));
+        moov.EndBox(hdlrStart);
+
+        size_t minfStart = moov.BeginBox("minf");
+
+        size_t smhdStart = moov.BeginBox("smhd");
+        moov.WriteU32(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.EndBox(smhdStart);
+
+        size_t dinfStart = moov.BeginBox("dinf");
+        size_t drefStart = moov.BeginBox("dref");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        size_t urlStart = moov.BeginBox("url ");
+        moov.WriteU32(0x00000001);
+        moov.EndBox(urlStart);
+        moov.EndBox(drefStart);
+        moov.EndBox(dinfStart);
+
+        size_t stblStart = moov.BeginBox("stbl");
+
+        size_t stsdStart = moov.BeginBox("stsd");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        size_t mp4aStart = moov.BeginBox("mp4a");
+        for (int i = 0; i < 6; ++i) moov.WriteU8(0);
+        moov.WriteU16(1);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU32(0);
+        moov.WriteU16(static_cast<uint16_t>(channels));
+        moov.WriteU16(16);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU32(static_cast<uint32_t>(timescale) << 16);
+
+        auto esds = BuildEsds(state->audioSpecificConfig, state->audioBitrate);
+        size_t esdsStart = moov.BeginBox("esds");
+        moov.WriteBytes(esds);
+        moov.EndBox(esdsStart);
+
+        moov.EndBox(mp4aStart);
+        moov.EndBox(stsdStart);
+
+        WriteStts(moov, state->audioSampleDurations);
+
+        size_t stscStart = moov.BeginBox("stsc");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.EndBox(stscStart);
+
+        size_t stszStart = moov.BeginBox("stsz");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(sampleCount);
+        for (uint32_t size : state->audioSampleSizes)
+        {
+            moov.WriteU32(size);
+        }
+        moov.EndBox(stszStart);
+
+        bool useCo64 = false;
+        for (uint64_t offset : state->audioSampleOffsets)
+        {
+            if (offset > 0xFFFFFFFFu)
+            {
+                useCo64 = true;
+                break;
+            }
+        }
+        size_t stcoStart = moov.BeginBox(useCo64 ? "co64" : "stco");
+        moov.WriteU32(0);
+        moov.WriteU32(sampleCount);
+        if (useCo64)
+        {
+            for (uint64_t offset : state->audioSampleOffsets)
+            {
+                moov.WriteU64(offset);
+            }
+        }
+        else
+        {
+            for (uint64_t offset : state->audioSampleOffsets)
+            {
+                moov.WriteU32(static_cast<uint32_t>(offset));
+            }
+        }
+        moov.EndBox(stcoStart);
+
+        moov.EndBox(stblStart);
+        moov.EndBox(minfStart);
+        moov.EndBox(mdiaStart);
+        moov.EndBox(trakStart);
+    }
+
+    std::vector<uint8_t> BuildMoov(const EncoderState* state)
+    {
+        Mp4Buffer moov;
+
+        const uint32_t timescale = 90000;
+        const uint32_t fps = state->fps > 0 ? static_cast<uint32_t>(state->fps) : 30;
+        const uint32_t frameDuration = timescale / fps;
+        const uint32_t sampleCount = static_cast<uint32_t>(state->sampleSizes.size());
+        const uint64_t videoDuration = static_cast<uint64_t>(frameDuration) * sampleCount;
+        uint64_t audioDuration = 0;
+        if (state->audioSampleRate > 0)
+        {
+            audioDuration = state->audioSampleTotal * timescale / static_cast<uint64_t>(state->audioSampleRate);
+        }
+        const uint64_t duration = MaxU64(videoDuration, audioDuration);
+
+        size_t moovStart = moov.BeginBox("moov");
+
+        size_t mvhdStart = moov.BeginBox("mvhd");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(timescale);
+        moov.WriteU32(static_cast<uint32_t>(duration));
+        moov.WriteU32(0x00010000);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        WriteMatrix(moov);
+        for (int i = 0; i < 6; ++i)
+        {
+            moov.WriteU32(0);
+        }
+        uint32_t nextTrackId = state->audioSampleSizes.empty() ? 2 : 3;
+        moov.WriteU32(nextTrackId);
+        moov.EndBox(mvhdStart);
+
+        size_t trakStart = moov.BeginBox("trak");
+
+        size_t tkhdStart = moov.BeginBox("tkhd");
+        moov.WriteU32(0x00000007);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        moov.WriteU32(0);
+        moov.WriteU32(static_cast<uint32_t>(duration));
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        WriteMatrix(moov);
+        moov.WriteU32(static_cast<uint32_t>(state->width) << 16);
+        moov.WriteU32(static_cast<uint32_t>(state->height) << 16);
+        moov.EndBox(tkhdStart);
+
+        size_t mdiaStart = moov.BeginBox("mdia");
+
+        size_t mdhdStart = moov.BeginBox("mdhd");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(timescale);
+        moov.WriteU32(static_cast<uint32_t>(duration));
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.EndBox(mdhdStart);
+
+        size_t hdlrStart = moov.BeginBox("hdlr");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteString4("vide");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        const char handlerName[] = "VideoHandler";
+        moov.data.insert(moov.data.end(), handlerName, handlerName + sizeof(handlerName));
+        moov.EndBox(hdlrStart);
+
+        size_t minfStart = moov.BeginBox("minf");
+
+        size_t vmhdStart = moov.BeginBox("vmhd");
+        moov.WriteU32(0x00000001);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.EndBox(vmhdStart);
+
+        size_t dinfStart = moov.BeginBox("dinf");
+        size_t drefStart = moov.BeginBox("dref");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        size_t urlStart = moov.BeginBox("url ");
+        moov.WriteU32(0x00000001);
+        moov.EndBox(urlStart);
+        moov.EndBox(drefStart);
+        moov.EndBox(dinfStart);
+
+        size_t stblStart = moov.BeginBox("stbl");
+
+        size_t stsdStart = moov.BeginBox("stsd");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        const char* sampleType = state->isHevc ? "hvc1" : "avc1";
+        size_t sampleEntryStart = moov.BeginBox(sampleType);
+        for (int i = 0; i < 6; ++i) moov.WriteU8(0);
+        moov.WriteU16(1);
+        moov.WriteU16(0);
+        moov.WriteU16(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU16(static_cast<uint16_t>(state->width));
+        moov.WriteU16(static_cast<uint16_t>(state->height));
+        moov.WriteU32(0x00480000);
+        moov.WriteU32(0x00480000);
+        moov.WriteU32(0);
+        moov.WriteU16(1);
+        moov.WriteU8(0);
+        for (int i = 0; i < 31; ++i) moov.WriteU8(0);
+        moov.WriteU16(0x0018);
+        moov.WriteU16(0xFFFF);
+
+        size_t codecBoxStart = moov.BeginBox(state->isHevc ? "hvcC" : "avcC");
+        moov.WriteBytes(state->codecPrivate);
+        moov.EndBox(codecBoxStart);
+
+        moov.EndBox(sampleEntryStart);
+        moov.EndBox(stsdStart);
+
+        size_t sttsStart = moov.BeginBox("stts");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        moov.WriteU32(sampleCount);
+        moov.WriteU32(frameDuration);
+        moov.EndBox(sttsStart);
+
+        size_t stscStart = moov.BeginBox("stsc");
+        moov.WriteU32(0);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.WriteU32(1);
+        moov.EndBox(stscStart);
+
+        size_t stszStart = moov.BeginBox("stsz");
+        moov.WriteU32(0);
+        moov.WriteU32(0);
+        moov.WriteU32(sampleCount);
+        for (uint32_t size : state->sampleSizes)
+        {
+            moov.WriteU32(size);
+        }
+        moov.EndBox(stszStart);
+
+        bool useCo64 = false;
+        for (uint64_t offset : state->sampleOffsets)
+        {
+            if (offset > 0xFFFFFFFFu)
+            {
+                useCo64 = true;
+                break;
+            }
+        }
+
+        size_t stcoStart = moov.BeginBox(useCo64 ? "co64" : "stco");
+        moov.WriteU32(0);
+        moov.WriteU32(sampleCount);
+        if (useCo64)
+        {
+            for (uint64_t offset : state->sampleOffsets)
+            {
+                moov.WriteU64(offset);
+            }
+        }
+        else
+        {
+            for (uint64_t offset : state->sampleOffsets)
+            {
+                moov.WriteU32(static_cast<uint32_t>(offset));
+            }
+        }
+        moov.EndBox(stcoStart);
+
+        if (!state->syncSamples.empty())
+        {
+            size_t stssStart = moov.BeginBox("stss");
+            moov.WriteU32(0);
+            moov.WriteU32(static_cast<uint32_t>(state->syncSamples.size()));
+            for (uint32_t sampleIndex : state->syncSamples)
+            {
+                moov.WriteU32(sampleIndex);
+            }
+            moov.EndBox(stssStart);
+        }
+
+        moov.EndBox(stblStart);
+        moov.EndBox(minfStart);
+        moov.EndBox(mdiaStart);
+        moov.EndBox(trakStart);
+
+        if (!state->audioSampleSizes.empty() && !state->audioSpecificConfig.empty())
+        {
+            AppendAudioTrak(moov, state, 2);
+        }
+        moov.EndBox(moovStart);
+
+        return moov.data;
+    }
+
+    bool FinalizeMp4(EncoderState* state)
+    {
+        if (!state->writerInitialized || state->mp4Finalized)
+        {
+            return true;
+        }
+
+        LogLine(state, L"finalize mp4 start");
+        if (!FlushAudio(state))
+        {
+            return false;
+        }
+        StopWriterThread(state);
+        LogLine(state, L"writer final stats videoSamples=" + std::to_wstring(state->writerTotalVideoSamples)
+            + L" audioSamples=" + std::to_wstring(state->writerTotalAudioSamples)
+            + L" bytesKB=" + std::to_wstring(state->writerTotalBytes / 1024)
+            + L" maxQueue=" + std::to_wstring(static_cast<uint64_t>(state->writerTotalMaxQueueDepth))
+            + L" avgWriteMs=" + std::to_wstring((state->writerTotalVideoSamples + state->writerTotalAudioSamples) == 0 ? 0.0 : state->writerTotalWriteMs / static_cast<double>(state->writerTotalVideoSamples + state->writerTotalAudioSamples))
+            + L" maxWriteMs=" + std::to_wstring(state->writerTotalMaxWriteMs)
+            + L" slowWrites=" + std::to_wstring(state->writerTotalSlowWrites));
+
+        if (state->codecPrivate.empty())
+        {
+            SetError(state, L"Video codec header not found.");
+            return false;
+        }
+
+        uint64_t dataEnd = state->file.Tell();
+
+        auto moov = BuildMoov(state);
+        if (!state->file.Write(moov.data(), moov.size()))
+        {
+            SetError(state, L"Failed to write moov.");
+            return false;
+        }
+
+        uint64_t fileSize = state->file.Tell();
+        uint64_t mdatSize = dataEnd - state->mdatHeaderOffset;
+        if (!state->file.Seek(state->mdatLargeSizeOffset) || !WriteU64BE(state->file, mdatSize))
+        {
+            SetError(state, L"Failed to update mdat size.");
+            return false;
+        }
+
+        state->file.Seek(fileSize);
+        state->file.Close();
+        state->mp4Finalized = true;
+        LogLine(state, L"finalize mp4 done");
+        return true;
+    }
+
+    struct NalUnit
+    {
+        const uint8_t* data = nullptr;
+        size_t size = 0;
+        uint8_t type = 0;
+    };
+
+    std::vector<NalUnit> ParseAnnexB(const uint8_t* data, size_t size, bool hevc)
+    {
+        std::vector<NalUnit> units;
+        size_t i = 0;
+        auto findStart = [&](size_t from) -> size_t
+        {
+            for (size_t j = from; j + 3 < size; ++j)
+            {
+                if (data[j] == 0 && data[j + 1] == 0)
+                {
+                    if (data[j + 2] == 1)
+                    {
+                        return j;
+                    }
+                    if (j + 3 < size && data[j + 2] == 0 && data[j + 3] == 1)
+                    {
+                        return j;
+                    }
+                }
+            }
+            return size;
+        };
+
+        while (i < size)
+        {
+            size_t start = findStart(i);
+            if (start >= size)
+            {
+                break;
+            }
+            size_t scSize = (data[start + 2] == 1) ? 3 : 4;
+            size_t nalStart = start + scSize;
+            size_t next = findStart(nalStart);
+            size_t nalEnd = (next < size) ? next : size;
+            if (nalEnd > nalStart)
+            {
+                uint8_t type = 0;
+                if (hevc)
+                {
+                    type = (data[nalStart] >> 1) & 0x3F;
+                }
+                else
+                {
+                    type = data[nalStart] & 0x1F;
+                }
+                units.push_back({ data + nalStart, nalEnd - nalStart, type });
+            }
+            i = nalEnd;
+        }
+        return units;
+    }
+
+    std::vector<uint8_t> BuildAvcC(const std::vector<uint8_t>& sps, const std::vector<uint8_t>& pps)
+    {
+        if (sps.size() < 4)
+        {
+            return {};
+        }
+        std::vector<uint8_t> avcc;
+        avcc.push_back(1);
+        avcc.push_back(sps[1]);
+        avcc.push_back(sps[2]);
+        avcc.push_back(sps[3]);
+        avcc.push_back(0xFF); // lengthSizeMinusOne=3
+        avcc.push_back(0xE1); // numOfSPS=1
+        avcc.push_back(static_cast<uint8_t>((sps.size() >> 8) & 0xFF));
+        avcc.push_back(static_cast<uint8_t>(sps.size() & 0xFF));
+        avcc.insert(avcc.end(), sps.begin(), sps.end());
+        avcc.push_back(1); // numOfPPS=1
+        avcc.push_back(static_cast<uint8_t>((pps.size() >> 8) & 0xFF));
+        avcc.push_back(static_cast<uint8_t>(pps.size() & 0xFF));
+        avcc.insert(avcc.end(), pps.begin(), pps.end());
+        return avcc;
+    }
+
+    std::vector<uint8_t> BuildHvcC(const std::vector<uint8_t>& vps, const std::vector<uint8_t>& sps, const std::vector<uint8_t>& pps)
+    {
+        // Minimal hvcC. Many fields are set to defaults; VPS/SPS/PPS are included.
+        std::vector<uint8_t> hvcc;
+        hvcc.reserve(64 + vps.size() + sps.size() + pps.size());
+
+        hvcc.push_back(1); // configurationVersion
+        hvcc.push_back(1); // general_profile_space(0), tier(0), profile_idc(1=Main)
+        hvcc.insert(hvcc.end(), 4, 0); // general_profile_compatibility_flags
+        hvcc.insert(hvcc.end(), 6, 0); // general_constraint_indicator_flags
+        hvcc.push_back(120); // general_level_idc (4.0)
+        hvcc.push_back(0xF0); // min_spatial_segmentation_idc (upper 4 bits set)
+        hvcc.push_back(0);
+        hvcc.push_back(0xFC); // parallelismType (reserved)
+        hvcc.push_back(0xFC); // chromaFormat (reserved)
+        hvcc.push_back(0xF8); // bitDepthLumaMinus8 (reserved)
+        hvcc.push_back(0xF8); // bitDepthChromaMinus8 (reserved)
+        hvcc.push_back(0); // avgFrameRate
+        hvcc.push_back(0);
+        hvcc.push_back(0x03); // constantFrameRate=0, numTemporalLayers=0, temporalIdNested=0, lengthSizeMinusOne=3
+
+        uint8_t numArrays = 0;
+        if (!vps.empty()) numArrays++;
+        if (!sps.empty()) numArrays++;
+        if (!pps.empty()) numArrays++;
+        hvcc.push_back(numArrays);
+
+        auto appendArray = [&](uint8_t nalType, const std::vector<uint8_t>& data)
+        {
+            hvcc.push_back(0x80 | nalType); // array_completeness=1
+            hvcc.push_back(0); // numNalus (hi)
+            hvcc.push_back(1); // numNalus (lo)
+            hvcc.push_back(static_cast<uint8_t>((data.size() >> 8) & 0xFF));
+            hvcc.push_back(static_cast<uint8_t>(data.size() & 0xFF));
+            hvcc.insert(hvcc.end(), data.begin(), data.end());
+        };
+
+        if (!vps.empty()) appendArray(32, vps);
+        if (!sps.empty()) appendArray(33, sps);
+        if (!pps.empty()) appendArray(34, pps);
+
+        return hvcc;
+    }
+
+    std::vector<uint8_t> ConvertToLengthPrefixed(const std::vector<NalUnit>& units, bool keepParameterSets)
+    {
+        std::vector<uint8_t> output;
+        for (const auto& unit : units)
+        {
+            if (!keepParameterSets)
+            {
+                if (unit.type == 7 || unit.type == 8 || unit.type == 32 || unit.type == 33 || unit.type == 34)
+                {
+                    continue;
+                }
+            }
+            uint32_t len = static_cast<uint32_t>(unit.size);
+            output.push_back(static_cast<uint8_t>((len >> 24) & 0xFF));
+            output.push_back(static_cast<uint8_t>((len >> 16) & 0xFF));
+            output.push_back(static_cast<uint8_t>((len >> 8) & 0xFF));
+            output.push_back(static_cast<uint8_t>(len & 0xFF));
+            output.insert(output.end(), unit.data, unit.data + unit.size);
+        }
+        return output;
+    }
+
+    bool ProcessEncodedBitstream(EncoderState* state, const uint8_t* data, size_t size)
+    {
+        if (!state || !data || size == 0)
+        {
+            return true;
+        }
+
+        std::vector<uint8_t> buffer(data, data + size);
+        bool hevc = state->isHevc;
+        auto units = ParseAnnexB(buffer.data(), buffer.size(), hevc);
+
+        std::vector<uint8_t> sps;
+        std::vector<uint8_t> pps;
+        std::vector<uint8_t> vps;
+        bool isKeyframe = false;
+        for (const auto& unit : units)
+        {
+            if (!hevc)
+            {
+                if (unit.type == 7 && sps.empty())
+                {
+                    sps.assign(unit.data, unit.data + unit.size);
+                }
+                else if (unit.type == 8 && pps.empty())
+                {
+                    pps.assign(unit.data, unit.data + unit.size);
+                }
+                else if (unit.type == 5)
+                {
+                    isKeyframe = true;
+                }
+            }
+            else
+            {
+                if (unit.type == 32 && vps.empty())
+                {
+                    vps.assign(unit.data, unit.data + unit.size);
+                }
+                else if (unit.type == 33 && sps.empty())
+                {
+                    sps.assign(unit.data, unit.data + unit.size);
+                }
+                else if (unit.type == 34 && pps.empty())
+                {
+                    pps.assign(unit.data, unit.data + unit.size);
+                }
+                else if (unit.type == 19 || unit.type == 20)
+                {
+                    isKeyframe = true;
+                }
+            }
+        }
+
+        if (!state->writerInitialized)
+        {
+            std::vector<uint8_t> codecPrivate = hevc ? BuildHvcC(vps, sps, pps) : BuildAvcC(sps, pps);
+            if (codecPrivate.empty())
+            {
+                return true;
+            }
+            if (!InitializeMp4Writer(state, hevc, codecPrivate))
+            {
+                return false;
+            }
+        }
+        else if (state->codecPrivate.empty())
+        {
+            std::vector<uint8_t> codecPrivate = hevc ? BuildHvcC(vps, sps, pps) : BuildAvcC(sps, pps);
+            if (!codecPrivate.empty())
+            {
+                state->codecPrivate = codecPrivate;
+            }
+        }
+
+        auto sampleData = ConvertToLengthPrefixed(units, false);
+        if (sampleData.empty())
+        {
+            return true;
+        }
+
+        if (!state->writerStarted)
+        {
+            StartWriterThread(state);
+        }
+        if (state->writerError)
+        {
+            return false;
+        }
+        {
+            std::lock_guard<std::mutex> lock(state->writerMutex);
+            state->sampleQueue.push_back({ std::move(sampleData), isKeyframe, false, 0 });
+            state->writerMaxQueueDepth = std::max(state->writerMaxQueueDepth, state->sampleQueue.size());
+            state->writerTotalMaxQueueDepth = std::max(state->writerTotalMaxQueueDepth, state->sampleQueue.size());
+        }
+        state->writerCv.notify_one();
+        return true;
+    }
+
+
+    amf::AMF_SURFACE_FORMAT ResolveAmfSurfaceFormat(ID3D11Texture2D* texture)
+    {
+        if (!texture)
+        {
+            return amf::AMF_SURFACE_BGRA;
+        }
+
+        D3D11_TEXTURE2D_DESC desc{};
+        texture->GetDesc(&desc);
+        switch (desc.Format)
+        {
+        case DXGI_FORMAT_R8G8B8A8_UNORM:
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            return amf::AMF_SURFACE_RGBA;
+        case DXGI_FORMAT_B8G8R8A8_UNORM:
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+        default:
+            return amf::AMF_SURFACE_BGRA;
+        }
+    }
+
+    bool DrainAmfOutput(EncoderState* state, bool waitForEof)
+    {
+        if (!state || !state->encoder)
+        {
+            return true;
+        }
+
+        const auto profileStart = NowQpc();
+        auto finish = [&](bool value)
+        {
+            const double elapsedMs = QpcElapsedMs(profileStart);
+            state->profileDrainMs += elapsedMs;
+            state->profileMaxDrainMs = std::max(state->profileMaxDrainMs, elapsedMs);
+            return value;
+        };
+        const auto waitStart = GetTickCount64();
+        for (;;)
+        {
+            amf::AMFDataPtr data;
+            auto result = state->encoder->QueryOutput(&data);
+            if (result == AMF_EOF)
+            {
+                return finish(true);
+            }
+            if (result == AMF_REPEAT || result == AMF_NEED_MORE_INPUT)
+            {
+                if (!waitForEof)
+                {
+                    return finish(true);
+                }
+                ++state->encoderRepeatCount;
+                if (state->encoderRepeatCount <= 5 || (state->encoderRepeatCount % 1000) == 0)
+                {
+                    LogLine(state, L"encoder drain waiting count=" + std::to_wstring(state->encoderRepeatCount)
+                        + L" result=" + std::to_wstring(static_cast<int>(result)));
+                }
+                if (GetTickCount64() - waitStart > 10000)
+                {
+                    SetError(state, L"AMF encoder drain timeout.");
+                    return finish(false);
+                }
+                Sleep(0);
+                continue;
+            }
+            if (!CheckStatus(state, result, L"AMF QueryOutput failed"))
+            {
+                return finish(false);
+            }
+            if (!data)
+            {
+                if (!waitForEof)
+                {
+                    return finish(true);
+                }
+                if (GetTickCount64() - waitStart > 10000)
+                {
+                    SetError(state, L"AMF encoder returned empty output until timeout.");
+                    return finish(false);
+                }
+                Sleep(0);
+                continue;
+            }
+
+            amf::AMFBufferPtr buffer(data);
+            if (buffer && buffer->GetNative() && buffer->GetSize() > 0)
+            {
+                ++state->encodedOutputs;
+                if (state->encodedOutputs <= 5 || (state->encodedOutputs % 120) == 0)
+                {
+                    LogLine(state, L"encoder output frame=" + std::to_wstring(state->encodedOutputs)
+                        + L" bytes=" + std::to_wstring(static_cast<uint64_t>(buffer->GetSize())));
+                }
+                if (!ProcessEncodedBitstream(state,
+                    static_cast<const uint8_t*>(buffer->GetNative()),
+                    static_cast<size_t>(buffer->GetSize())))
+                {
+                    return finish(false);
+                }
+            }
+        }
+    }
+
+    void ApplyH264Settings(EncoderState* state)
+    {
+        const auto quality = state->qualityPreset <= 0
+            ? AMF_VIDEO_ENCODER_QUALITY_PRESET_SPEED
+            : (state->qualityPreset >= 2 ? AMF_VIDEO_ENCODER_QUALITY_PRESET_HIGH_QUALITY : AMF_VIDEO_ENCODER_QUALITY_PRESET_BALANCED);
+        const auto usage = state->qualityPreset >= 2
+            ? AMF_VIDEO_ENCODER_USAGE_HIGH_QUALITY
+            : AMF_VIDEO_ENCODER_USAGE_TRANSCODING;
+        const auto rateControl = state->rateControlMode == 0
+            ? AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR
+            : AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR;
+
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_USAGE, static_cast<amf_int64>(usage));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_PROFILE, static_cast<amf_int64>(AMF_VIDEO_ENCODER_PROFILE_HIGH));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_QUALITY_PRESET, static_cast<amf_int64>(quality));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMESIZE, AMFConstructSize(state->width, state->height));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_FRAMERATE, AMFConstructRate(state->fps, 1));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_MEMORY_TYPE, static_cast<amf_int64>(amf::AMF_MEMORY_DX11));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_INPUT_QUEUE_SIZE, static_cast<amf_int64>(state->queueDepth));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD, static_cast<amf_int64>(rateControl));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_TARGET_BITRATE, static_cast<amf_int64>(state->bitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_PEAK_BITRATE, static_cast<amf_int64>(state->maxBitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_VBV_BUFFER_SIZE, static_cast<amf_int64>(state->maxBitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_INITIAL_VBV_BUFFER_FULLNESS, static_cast<amf_int64>(64));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_IDR_PERIOD, static_cast<amf_int64>(std::max(1, state->fps * 2)));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEADER_INSERTION_SPACING, static_cast<amf_int64>(std::max(1, state->fps * 2)));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_MAX_NUM_REFRAMES, static_cast<amf_int64>(1));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_MAX_CONSECUTIVE_BPICTURES, static_cast<amf_int64>(0));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, static_cast<amf_int64>(0));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_B_REFERENCE_ENABLE, static_cast<amf_bool>(false));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_ADAPTIVE_MINIGOP, static_cast<amf_bool>(false));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_ENABLE_VBAQ, static_cast<amf_bool>(state->enableVbaq));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HIGH_MOTION_QUALITY_BOOST_ENABLE, static_cast<amf_bool>(state->highMotionQualityBoost));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_PRE_ANALYSIS_ENABLE, static_cast<amf_bool>(state->preAnalysis));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_PREENCODE_ENABLE, static_cast<amf_int64>(state->preAnalysis ? AMF_VIDEO_ENCODER_PREENCODE_ENABLED : AMF_VIDEO_ENCODER_PREENCODE_DISABLED));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_STATISTICS_FEEDBACK, static_cast<amf_bool>(state->logEnabled));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_ENABLE_SMART_ACCESS_VIDEO, static_cast<amf_bool>(true));
+    }
+
+    void ApplyHevcSettings(EncoderState* state)
+    {
+        const auto quality = state->qualityPreset <= 0
+            ? AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_SPEED
+            : (state->qualityPreset >= 2 ? AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_HIGH_QUALITY : AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET_BALANCED);
+        const auto usage = state->qualityPreset >= 2
+            ? AMF_VIDEO_ENCODER_HEVC_USAGE_HIGH_QUALITY
+            : AMF_VIDEO_ENCODER_HEVC_USAGE_TRANSCODING;
+        const auto rateControl = state->rateControlMode == 0
+            ? AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR
+            : AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR;
+
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_USAGE, static_cast<amf_int64>(usage));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PROFILE, static_cast<amf_int64>(AMF_VIDEO_ENCODER_HEVC_PROFILE_MAIN));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TIER, static_cast<amf_int64>(AMF_VIDEO_ENCODER_HEVC_TIER_HIGH));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_QUALITY_PRESET, static_cast<amf_int64>(quality));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMESIZE, AMFConstructSize(state->width, state->height));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_FRAMERATE, AMFConstructRate(state->fps, 1));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MEMORY_TYPE, static_cast<amf_int64>(amf::AMF_MEMORY_DX11));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INPUT_QUEUE_SIZE, static_cast<amf_int64>(state->queueDepth));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD, static_cast<amf_int64>(rateControl));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_TARGET_BITRATE, static_cast<amf_int64>(state->bitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PEAK_BITRATE, static_cast<amf_int64>(state->maxBitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_VBV_BUFFER_SIZE, static_cast<amf_int64>(state->maxBitrateKbps) * 1000);
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_INITIAL_VBV_BUFFER_FULLNESS, static_cast<amf_int64>(64));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_GOP_SIZE, static_cast<amf_int64>(std::max(1, state->fps * 2)));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, static_cast<amf_int64>(1));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, static_cast<amf_int64>(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_NUM_REFRAMES, static_cast<amf_int64>(1));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_VBAQ, static_cast<amf_bool>(state->enableVbaq));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HIGH_MOTION_QUALITY_BOOST_ENABLE, static_cast<amf_bool>(state->highMotionQualityBoost));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PRE_ANALYSIS_ENABLE, static_cast<amf_bool>(state->preAnalysis));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PREENCODE_ENABLE, static_cast<amf_bool>(state->preAnalysis));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_STATISTICS_FEEDBACK, static_cast<amf_bool>(state->logEnabled));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_SMART_ACCESS_VIDEO, static_cast<amf_bool>(true));
+    }
+
+    bool InitializeEncoder(EncoderState* state, ID3D11Device* device, int width, int height, int fps, int bitrateKbps, int codec, int quality, int rateControlMode, int maxBitrateKbps, int queueDepth, int enablePreAnalysis, ID3D11Texture2D* firstTexture)
+    {
+        state->device = device;
+        state->device->AddRef();
+        state->width = width;
+        state->height = height;
+        state->fps = std::max(1, fps);
+        state->isHevc = codec == 1;
+        state->qualityPreset = quality;
+        state->rateControlMode = rateControlMode;
+        state->bitrateKbps = std::max(100, bitrateKbps);
+        state->maxBitrateKbps = std::max(state->bitrateKbps, maxBitrateKbps);
+        state->queueDepth = ClampInt(queueDepth, 4, 32);
+        state->preAnalysis = enablePreAnalysis != 0;
+        state->enableVbaq = quality >= 1;
+        state->highMotionQualityBoost = quality >= 1;
+        state->inputFormat = ResolveAmfSurfaceFormat(firstTexture);
+        LogAdapterInfo(state, device);
+        if (!EnsureInputTexture(state, firstTexture))
+        {
+            return false;
+        }
+        state->inputFormat = ResolveAmfSurfaceFormat(state->inputTexture);
+
+        LogLine(state, L"init params width=" + std::to_wstring(width)
+            + L" height=" + std::to_wstring(height)
+            + L" fps=" + std::to_wstring(state->fps)
+            + L" codec=" + std::wstring(state->isHevc ? L"hevc" : L"h264")
+            + L" bitrateKbps=" + std::to_wstring(state->bitrateKbps)
+            + L" maxBitrateKbps=" + std::to_wstring(state->maxBitrateKbps)
+            + L" quality=" + std::to_wstring(state->qualityPreset)
+            + L" rateControl=" + std::to_wstring(state->rateControlMode)
+            + L" queueDepth=" + std::to_wstring(state->queueDepth)
+            + L" preAnalysis=" + std::to_wstring(state->preAnalysis ? 1 : 0)
+            + L" inputFormat=" + std::to_wstring(static_cast<int>(state->inputFormat))
+            + L" inputTextureFormat=" + DxgiFormatName(state->inputTextureFormat));
+
+        state->amfModule = LoadLibraryW(AMF_DLL_NAME);
+        if (!state->amfModule)
+        {
+            SetError(state, L"amfrt64.dll not found. AMD driver or AMF runtime is not available.");
+            return false;
+        }
+
+        state->amfInit = reinterpret_cast<AMFInit_Fn>(GetProcAddress(state->amfModule, AMF_INIT_FUNCTION_NAME));
+        if (!state->amfInit)
+        {
+            SetError(state, L"AMFInit not found.");
+            return false;
+        }
+
+        auto result = state->amfInit(AMF_FULL_VERSION, &state->factory);
+        if (!CheckStatus(state, result, L"AMFInit failed"))
+        {
+            return false;
+        }
+
+        result = state->factory->CreateContext(&state->context);
+        if (!CheckStatus(state, result, L"AMF CreateContext failed"))
+        {
+            return false;
+        }
+
+        result = state->context->InitDX11(device, amf::AMF_DX11_0);
+        if (!CheckStatus(state, result, L"AMF InitDX11 failed"))
+        {
+            return false;
+        }
+
+        result = state->factory->CreateComponent(state->context, AMFVideoConverter, &state->converter);
+        if (!CheckStatus(state, result, L"AMF CreateComponent converter failed"))
+        {
+            return false;
+        }
+        state->converter->SetProperty(AMF_VIDEO_CONVERTER_OUTPUT_FORMAT, static_cast<amf_int64>(amf::AMF_SURFACE_NV12));
+        state->converter->SetProperty(AMF_VIDEO_CONVERTER_MEMORY_TYPE, static_cast<amf_int64>(amf::AMF_MEMORY_DX11));
+        state->converter->SetProperty(AMF_VIDEO_CONVERTER_OUTPUT_SIZE, AMFConstructSize(width, height));
+        state->converter->SetProperty(AMF_VIDEO_CONVERTER_SCALE, static_cast<amf_int64>(AMF_VIDEO_CONVERTER_SCALE_BILINEAR));
+        result = state->converter->Init(state->inputFormat, width, height);
+        if (!CheckStatus(state, result, L"AMF converter Init failed"))
+        {
+            return false;
+        }
+
+        result = state->factory->CreateComponent(state->context, state->isHevc ? AMFVideoEncoder_HEVC : AMFVideoEncoderVCE_AVC, &state->encoder);
+        if (!CheckStatus(state, result, L"AMF CreateComponent encoder failed"))
+        {
+            return false;
+        }
+
+        if (state->isHevc)
+        {
+            ApplyHevcSettings(state);
+        }
+        else
+        {
+            ApplyH264Settings(state);
+        }
+
+        result = state->encoder->Init(amf::AMF_SURFACE_NV12, width, height);
+        if (!CheckStatus(state, result, L"AMF encoder Init failed"))
+        {
+            return false;
+        }
+
+        LogLine(state, L"AMF encoder initialized with DX11 zero-copy converter path");
+        return true;
+    }
+
+    bool ConvertSurfaceToNv12(EncoderState* state, amf::AMFSurface* input, amf::AMFSurfacePtr& converted)
+    {
+        if (!state || !state->converter || !input)
+        {
+            return false;
+        }
+
+        const auto submitStart = GetTickCount64();
+        const auto profileSubmitStart = NowQpc();
+        for (;;)
+        {
+            auto result = state->converter->SubmitInput(input);
+            if (result == AMF_INPUT_FULL)
+            {
+                ++state->converterInputFullCount;
+                if (state->converterInputFullCount <= 5 || (state->converterInputFullCount % 60) == 0)
+                {
+                    LogLine(state, L"converter input full count=" + std::to_wstring(state->converterInputFullCount));
+                }
+                if (GetTickCount64() - submitStart > 3000)
+                {
+                    SetError(state, L"AMF converter SubmitInput timeout.");
+                    state->profileConvertSubmitMs += QpcElapsedMs(profileSubmitStart);
+                    return false;
+                }
+                if (!DrainAmfOutput(state, false))
+                {
+                    return false;
+                }
+                Sleep(0);
+                continue;
+            }
+            if (!CheckStatus(state, result, L"AMF converter SubmitInput failed"))
+            {
+                state->profileConvertSubmitMs += QpcElapsedMs(profileSubmitStart);
+                return false;
+            }
+            break;
+        }
+        const double convertSubmitMs = QpcElapsedMs(profileSubmitStart);
+        state->profileConvertSubmitMs += convertSubmitMs;
+        state->profileMaxConvertSubmitMs = std::max(state->profileMaxConvertSubmitMs, convertSubmitMs);
+
+        const auto queryStart = GetTickCount64();
+        const auto profileQueryStart = NowQpc();
+        for (;;)
+        {
+            amf::AMFDataPtr data;
+            auto result = state->converter->QueryOutput(&data);
+            if (result == AMF_REPEAT || result == AMF_NEED_MORE_INPUT)
+            {
+                ++state->converterRepeatCount;
+                if (state->converterRepeatCount <= 5 || (state->converterRepeatCount % 120) == 0)
+                {
+                    LogLine(state, L"converter waiting count=" + std::to_wstring(state->converterRepeatCount)
+                        + L" result=" + std::to_wstring(static_cast<int>(result)));
+                }
+                if (GetTickCount64() - queryStart > 3000)
+                {
+                    SetError(state, L"AMF converter QueryOutput timeout.");
+                    state->profileConvertQueryMs += QpcElapsedMs(profileQueryStart);
+                    return false;
+                }
+                Sleep(0);
+                continue;
+            }
+            if (!CheckStatus(state, result, L"AMF converter QueryOutput failed"))
+            {
+                state->profileConvertQueryMs += QpcElapsedMs(profileQueryStart);
+                return false;
+            }
+            if (!data)
+            {
+                if (GetTickCount64() - queryStart > 3000)
+                {
+                    SetError(state, L"AMF converter returned empty output until timeout.");
+                    state->profileConvertQueryMs += QpcElapsedMs(profileQueryStart);
+                    return false;
+                }
+                Sleep(0);
+                continue;
+            }
+
+            converted = amf::AMFSurfacePtr(data);
+            const double convertQueryMs = QpcElapsedMs(profileQueryStart);
+            state->profileConvertQueryMs += convertQueryMs;
+            state->profileMaxConvertQueryMs = std::max(state->profileMaxConvertQueryMs, convertQueryMs);
+            ++state->convertedFrames;
+            if (state->convertedFrames <= 5 || (state->convertedFrames % 120) == 0)
+            {
+                LogLine(state, L"converted frame=" + std::to_wstring(state->convertedFrames));
+            }
+            return converted != nullptr;
+        }
+    }
+
+    DXGI_FORMAT NormalizeInputFormat(DXGI_FORMAT format)
+    {
+        switch (format)
+        {
+        case DXGI_FORMAT_R8G8B8A8_UNORM:
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB:
+            return DXGI_FORMAT_R8G8B8A8_UNORM;
+        case DXGI_FORMAT_B8G8R8A8_UNORM:
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB:
+        default:
+            return DXGI_FORMAT_B8G8R8A8_UNORM;
+        }
+    }
+
+    std::wstring DxgiFormatName(DXGI_FORMAT format)
+    {
+        switch (format)
+        {
+        case DXGI_FORMAT_R8G8B8A8_UNORM: return L"R8G8B8A8_UNORM";
+        case DXGI_FORMAT_R8G8B8A8_UNORM_SRGB: return L"R8G8B8A8_UNORM_SRGB";
+        case DXGI_FORMAT_B8G8R8A8_UNORM: return L"B8G8R8A8_UNORM";
+        case DXGI_FORMAT_B8G8R8A8_UNORM_SRGB: return L"B8G8R8A8_UNORM_SRGB";
+        default: return L"DXGI_FORMAT_" + std::to_wstring(static_cast<int>(format));
+        }
+    }
+
+    void LogAdapterInfo(EncoderState* state, ID3D11Device* device)
+    {
+        if (!state || !device || !state->logEnabled)
+        {
+            return;
+        }
+
+        IDXGIDevice* dxgiDevice = nullptr;
+        if (FAILED(device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(&dxgiDevice))) || !dxgiDevice)
+        {
+            LogLine(state, L"adapter query failed");
+            return;
+        }
+
+        IDXGIAdapter* adapter = nullptr;
+        if (SUCCEEDED(dxgiDevice->GetAdapter(&adapter)) && adapter)
+        {
+            DXGI_ADAPTER_DESC desc{};
+            if (SUCCEEDED(adapter->GetDesc(&desc)))
+            {
+                LogLine(state, L"adapter name=" + std::wstring(desc.Description)
+                    + L" vendor=0x" + std::to_wstring(desc.VendorId)
+                    + L" device=0x" + std::to_wstring(desc.DeviceId)
+                    + L" dedicatedVideoMB=" + std::to_wstring(static_cast<uint64_t>(desc.DedicatedVideoMemory / (1024 * 1024))));
+            }
+            adapter->Release();
+        }
+        dxgiDevice->Release();
+    }
+
+    bool EnsureInputTexture(EncoderState* state, ID3D11Texture2D* source)
+    {
+        if (!state || !state->device || !source)
+        {
+            return false;
+        }
+
+        D3D11_TEXTURE2D_DESC srcDesc{};
+        source->GetDesc(&srcDesc);
+        const DXGI_FORMAT normalizedFormat = NormalizeInputFormat(srcDesc.Format);
+
+        bool recreate = false;
+        if (!state->inputTexture)
+        {
+            recreate = true;
+        }
+        else
+        {
+            D3D11_TEXTURE2D_DESC currentDesc{};
+            state->inputTexture->GetDesc(&currentDesc);
+            recreate = currentDesc.Width != srcDesc.Width
+                || currentDesc.Height != srcDesc.Height
+                || currentDesc.Format != normalizedFormat;
+        }
+
+        if (recreate)
+        {
+            if (state->inputTexture)
+            {
+                state->inputTexture->Release();
+                state->inputTexture = nullptr;
+            }
+
+            D3D11_TEXTURE2D_DESC desc = srcDesc;
+            desc.Format = normalizedFormat;
+            desc.MipLevels = 1;
+            desc.ArraySize = 1;
+            desc.SampleDesc.Count = 1;
+            desc.SampleDesc.Quality = 0;
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
+
+            if (FAILED(state->device->CreateTexture2D(&desc, nullptr, &state->inputTexture)) || !state->inputTexture)
+            {
+                SetError(state, L"Failed to create AMF input texture.");
+                return false;
+            }
+
+            state->inputTextureFormat = normalizedFormat;
+            LogLine(state, L"created input texture sourceFormat=" + DxgiFormatName(srcDesc.Format)
+                + L" normalizedFormat=" + DxgiFormatName(normalizedFormat)
+                + L" width=" + std::to_wstring(srcDesc.Width)
+                + L" height=" + std::to_wstring(srcDesc.Height));
+        }
+
+        if (!state->deviceContext)
+        {
+            state->device->GetImmediateContext(&state->deviceContext);
+            if (!state->deviceContext)
+            {
+                SetError(state, L"Failed to get D3D11 immediate context.");
+                return false;
+            }
+        }
+
+        state->deviceContext->CopyResource(state->inputTexture, source);
+        return true;
+    }
+
+    bool EncodeTexture(EncoderState* state, ID3D11Texture2D* texture)
+    {
+        if (!state || !texture || !state->context || !state->encoder)
+        {
+            return false;
+        }
+
+        const auto nativeStart = NowQpc();
+        const auto ensureStart = NowQpc();
+
+        ID3D11Texture2D* activeTexture = nullptr;
+        amf::AMFSurfacePtr surface;
+        double createSurfaceMs = 0.0;
+
+        // Check if this texture is in our pool
+        int poolSlotIndex = -1;
+        {
+            std::lock_guard<std::mutex> lock(state->poolMutex);
+            for (int i = 0; i < EncoderState::POOL_SIZE; ++i)
+            {
+                if (state->pool[i].texture == texture)
+                {
+                    poolSlotIndex = i;
+                    activeTexture = texture;
+                    surface = state->pool[i].cachedSurface;
+                    break;
+                }
+            }
+        }
+
+        if (poolSlotIndex != -1)
+        {
+            // It's a pool texture! Zero-copy!
+            // If we don't have a cached AMFSurface for it yet, create it.
+            if (!surface)
+            {
+                const auto surfaceStart = NowQpc();
+                auto result = state->context->CreateSurfaceFromDX11Native(activeTexture, &surface, nullptr);
+                createSurfaceMs = QpcElapsedMs(surfaceStart);
+                if (!CheckStatus(state, result, L"AMF CreateSurfaceFromDX11Native failed for pool texture"))
+                {
+                    return false;
+                }
+                // Cache it in the pool slot
+                std::lock_guard<std::mutex> lock(state->poolMutex);
+                state->pool[poolSlotIndex].cachedSurface = surface;
+            }
+        }
+        else
+        {
+            // Traditional copy path
+            if (!EnsureInputTexture(state, texture))
+            {
+                return false;
+            }
+            activeTexture = state->inputTexture;
+
+            const auto surfaceStart = NowQpc();
+            auto result = state->context->CreateSurfaceFromDX11Native(activeTexture, &surface, nullptr);
+            createSurfaceMs = QpcElapsedMs(surfaceStart);
+            if (!CheckStatus(state, result, L"AMF CreateSurfaceFromDX11Native failed"))
+            {
+                return false;
+            }
+        }
+
+        const double ensureTextureMs = QpcElapsedMs(ensureStart);
+        state->profileEnsureTextureMs += ensureTextureMs;
+        state->profileMaxEnsureTextureMs = std::max(state->profileMaxEnsureTextureMs, ensureTextureMs);
+        state->profileCreateSurfaceMs += createSurfaceMs;
+        state->profileMaxCreateSurfaceMs = std::max(state->profileMaxCreateSurfaceMs, createSurfaceMs);
+
+        // AMFSurface is ready
+        surface->SetPts(static_cast<amf_pts>(state->frameIndex));
+        surface->SetDuration(1);
+
+        amf::AMFSurfacePtr encodeSurface;
+        if (!ConvertSurfaceToNv12(state, surface, encodeSurface))
+        {
+            return false;
+        }
+        encodeSurface->SetPts(surface->GetPts());
+        encodeSurface->SetDuration(surface->GetDuration());
+
+        const auto submitStart = GetTickCount64();
+        const auto profileSubmitStart = NowQpc();
+        for (;;)
+        {
+            auto result = state->encoder->SubmitInput(encodeSurface);
+            if (result == AMF_INPUT_FULL)
+            {
+                ++state->encoderInputFullCount;
+                if (state->encoderInputFullCount <= 5 || (state->encoderInputFullCount % 60) == 0)
+                {
+                    LogLine(state, L"encoder input full count=" + std::to_wstring(state->encoderInputFullCount));
+                }
+                if (GetTickCount64() - submitStart > 3000)
+                {
+                    SetError(state, L"AMF encoder SubmitInput timeout.");
+                    state->profileEncoderSubmitMs += QpcElapsedMs(profileSubmitStart);
+                    return false;
+                }
+                if (!DrainAmfOutput(state, false))
+                {
+                    return false;
+                }
+                Sleep(0);
+                continue;
+            }
+            if (result == AMF_NEED_MORE_INPUT)
+            {
+                break;
+            }
+            if (!CheckStatus(state, result, L"AMF SubmitInput failed"))
+            {
+                state->profileEncoderSubmitMs += QpcElapsedMs(profileSubmitStart);
+                return false;
+            }
+            break;
+        }
+        const double encoderSubmitMs = QpcElapsedMs(profileSubmitStart);
+        state->profileEncoderSubmitMs += encoderSubmitMs;
+        state->profileMaxEncoderSubmitMs = std::max(state->profileMaxEncoderSubmitMs, encoderSubmitMs);
+
+        ++state->frameIndex;
+        ++state->submittedFrames;
+        if (state->submittedFrames <= 5 || (state->submittedFrames % 120) == 0)
+        {
+            LogLine(state, L"submitted frame=" + std::to_wstring(state->submittedFrames));
+        }
+        const bool drained = DrainAmfOutput(state, false);
+        const double nativeMs = QpcElapsedMs(nativeStart);
+        state->profileNativeMs += nativeMs;
+        state->profileMaxNativeMs = std::max(state->profileMaxNativeMs, nativeMs);
+        if (nativeMs >= 5.0 || ensureTextureMs >= 2.0 || encoderSubmitMs >= 2.0)
+        {
+            ++state->profileSlowFrames;
+            if (state->profileSlowFrames <= 10 || (state->profileSlowFrames % 60) == 0)
+            {
+                size_t writerMaxQueue = 0;
+                {
+                    std::lock_guard<std::mutex> lock(state->writerMutex);
+                    writerMaxQueue = state->writerMaxQueueDepth;
+                }
+                LogLine(state, L"native slow frame=" + std::to_wstring(state->submittedFrames)
+                    + L" nativeMs=" + std::to_wstring(nativeMs)
+                    + L" ensureTextureMs=" + std::to_wstring(ensureTextureMs)
+                    + L" createSurfaceMs=" + std::to_wstring(createSurfaceMs)
+                    + L" encoderSubmitMs=" + std::to_wstring(encoderSubmitMs)
+                    + L" queueMax=" + std::to_wstring(static_cast<uint64_t>(writerMaxQueue)));
+            }
+        }
+        ++state->profileFrames;
+        if (state->profileStartTick == 0)
+        {
+            state->profileStartTick = nativeStart;
+        }
+        if (state->logEnabled && (state->profileFrames % 120) == 0)
+        {
+            const double wallMs = QpcElapsedMs(state->profileStartTick);
+            const double frames = static_cast<double>(state->profileFrames);
+            const double fps = wallMs > 0 ? frames * 1000.0 / wallMs : 0.0;
+            uint64_t writerVideoSamples = 0;
+            uint64_t writerAudioSamples = 0;
+            uint64_t writerSlowWrites = 0;
+            uint64_t writerBytes = 0;
+            size_t writerMaxQueue = 0;
+            double writerWriteMs = 0;
+            double writerMaxWriteMs = 0;
+            {
+                std::lock_guard<std::mutex> lock(state->writerMutex);
+                writerVideoSamples = state->writerVideoSamples;
+                writerAudioSamples = state->writerAudioSamples;
+                writerSlowWrites = state->writerSlowWrites;
+                writerBytes = state->writerBytes;
+                writerMaxQueue = state->writerMaxQueueDepth;
+                writerWriteMs = state->writerWriteMs;
+                writerMaxWriteMs = state->writerMaxWriteMs;
+                state->writerWriteMs = 0;
+                state->writerMaxWriteMs = 0;
+                state->writerSlowWrites = 0;
+                state->writerMaxQueueDepth = 0;
+                state->writerVideoSamples = 0;
+                state->writerAudioSamples = 0;
+                state->writerBytes = 0;
+            }
+            const auto writerSamples = writerVideoSamples + writerAudioSamples;
+            LogLine(state, L"native profile frames=" + std::to_wstring(state->profileFrames)
+                + L" fps=" + std::to_wstring(fps)
+                + L" avgNativeMs=" + std::to_wstring(state->profileNativeMs / frames)
+                + L" ensureTextureMs=" + std::to_wstring(state->profileEnsureTextureMs / frames)
+                + L" createSurfaceMs=" + std::to_wstring(state->profileCreateSurfaceMs / frames)
+                + L" convertSubmitMs=" + std::to_wstring(state->profileConvertSubmitMs / frames)
+                + L" convertQueryMs=" + std::to_wstring(state->profileConvertQueryMs / frames)
+                + L" encoderSubmitMs=" + std::to_wstring(state->profileEncoderSubmitMs / frames)
+                + L" drainMs=" + std::to_wstring(state->profileDrainMs / frames)
+                + L" maxNativeMs=" + std::to_wstring(state->profileMaxNativeMs)
+                + L" maxEnsureTextureMs=" + std::to_wstring(state->profileMaxEnsureTextureMs)
+                + L" maxCreateSurfaceMs=" + std::to_wstring(state->profileMaxCreateSurfaceMs)
+                + L" maxConvertSubmitMs=" + std::to_wstring(state->profileMaxConvertSubmitMs)
+                + L" maxConvertQueryMs=" + std::to_wstring(state->profileMaxConvertQueryMs)
+                + L" maxEncoderSubmitMs=" + std::to_wstring(state->profileMaxEncoderSubmitMs)
+                + L" maxDrainMs=" + std::to_wstring(state->profileMaxDrainMs)
+                + L" slowFrames=" + std::to_wstring(state->profileSlowFrames)
+                + L" writerMaxQueue=" + std::to_wstring(static_cast<uint64_t>(writerMaxQueue))
+                + L" writerAvgWriteMs=" + std::to_wstring(writerSamples == 0 ? 0.0 : writerWriteMs / static_cast<double>(writerSamples))
+                + L" writerMaxWriteMs=" + std::to_wstring(writerMaxWriteMs)
+                + L" writerSlowWrites=" + std::to_wstring(writerSlowWrites)
+                + L" writerVideoSamples=" + std::to_wstring(writerVideoSamples)
+                + L" writerAudioSamples=" + std::to_wstring(writerAudioSamples)
+                + L" writerKB=" + std::to_wstring(writerBytes / 1024)
+                + L" encoderInputFull=" + std::to_wstring(state->encoderInputFullCount)
+                + L" converterInputFull=" + std::to_wstring(state->converterInputFullCount));
+            state->profileFrames = 0;
+            state->profileStartTick = 0;
+            state->profileNativeMs = 0;
+            state->profileEnsureTextureMs = 0;
+            state->profileCreateSurfaceMs = 0;
+            state->profileConvertSubmitMs = 0;
+            state->profileConvertQueryMs = 0;
+            state->profileEncoderSubmitMs = 0;
+            state->profileDrainMs = 0;
+            state->profileMaxNativeMs = 0;
+            state->profileMaxEnsureTextureMs = 0;
+            state->profileMaxCreateSurfaceMs = 0;
+            state->profileMaxConvertSubmitMs = 0;
+            state->profileMaxConvertQueryMs = 0;
+            state->profileMaxEncoderSubmitMs = 0;
+            state->profileMaxDrainMs = 0;
+            state->profileSlowFrames = 0;
+        }
+        return drained;
+    }
+    void StartWriterThread(EncoderState* state)
+    {
+        if (!state || state->writerStarted)
+        {
+            return;
+        }
+        LogLine(state, L"writer thread start");
+        state->writerStop = false;
+        state->writerError = false;
+        state->writerStarted = true;
+        state->writerThread = std::thread([state]()
+        {
+            for (;;)
+            {
+                EncoderState::EncodedSample sample;
+                {
+                    std::unique_lock<std::mutex> lock(state->writerMutex);
+                    state->writerCv.wait(lock, [state]()
+                    {
+                        return state->writerStop || !state->sampleQueue.empty();
+                    });
+                    if (state->writerStop && state->sampleQueue.empty())
+                    {
+                        break;
+                    }
+                    sample = std::move(state->sampleQueue.front());
+                    state->sampleQueue.pop_front();
+                }
+
+                if (sample.data.empty())
+                {
+                    continue;
+                }
+
+                std::lock_guard<std::mutex> fileLock(state->fileMutex);
+                uint64_t offset = state->file.Tell();
+                const auto writeStart = NowQpc();
+                if (!state->file.Write(sample.data.data(), sample.data.size()))
+                {
+                    SetError(state, L"Failed to write sample data.");
+                    state->writerError = true;
+                    break;
+                }
+                const double writeMs = QpcElapsedMs(writeStart);
+                uint64_t slowWrites = 0;
+                {
+                    std::lock_guard<std::mutex> lock(state->writerMutex);
+                    state->writerWriteMs += writeMs;
+                    state->writerMaxWriteMs = std::max(state->writerMaxWriteMs, writeMs);
+                    state->writerBytes += static_cast<uint64_t>(sample.data.size());
+                    state->writerTotalWriteMs += writeMs;
+                    state->writerTotalMaxWriteMs = std::max(state->writerTotalMaxWriteMs, writeMs);
+                    state->writerTotalBytes += static_cast<uint64_t>(sample.data.size());
+                    if (writeMs >= 3.0)
+                    {
+                        ++state->writerSlowWrites;
+                        ++state->writerTotalSlowWrites;
+                        slowWrites = state->writerSlowWrites;
+                    }
+                }
+                if (slowWrites > 0 && (slowWrites <= 10 || (slowWrites % 60) == 0))
+                {
+                    LogLine(state, L"writer slow write count=" + std::to_wstring(slowWrites)
+                        + L" ms=" + std::to_wstring(writeMs)
+                        + L" bytes=" + std::to_wstring(static_cast<uint64_t>(sample.data.size()))
+                        + L" audio=" + std::to_wstring(sample.isAudio ? 1 : 0));
+                }
+                if (sample.isAudio)
+                {
+                    {
+                        std::lock_guard<std::mutex> lock(state->writerMutex);
+                        ++state->writerAudioSamples;
+                        ++state->writerTotalAudioSamples;
+                    }
+                    state->audioSampleOffsets.push_back(offset);
+                    state->audioSampleSizes.push_back(static_cast<uint32_t>(sample.data.size()));
+                    state->audioSampleDurations.push_back(sample.audioDuration);
+                    state->audioSampleTotal += sample.audioDuration;
+                }
+                else
+                {
+                    {
+                        std::lock_guard<std::mutex> lock(state->writerMutex);
+                        ++state->writerVideoSamples;
+                        ++state->writerTotalVideoSamples;
+                    }
+                    state->sampleOffsets.push_back(offset);
+                    state->sampleSizes.push_back(static_cast<uint32_t>(sample.data.size()));
+                    if (sample.keyframe)
+                    {
+                        state->syncSamples.push_back(static_cast<uint32_t>(state->sampleSizes.size()));
+                    }
+                }
+            }
+            LogLine(state, L"writer thread exit");
+        });
+    }
+
+    void StopWriterThread(EncoderState* state)
+    {
+        if (!state || !state->writerStarted)
+        {
+            return;
+        }
+        LogLine(state, L"writer thread stop request");
+        {
+            std::lock_guard<std::mutex> lock(state->writerMutex);
+            state->writerStop = true;
+        }
+        state->writerCv.notify_all();
+        if (state->writerThread.joinable())
+        {
+            state->writerThread.join();
+        }
+        state->writerStarted = false;
+        LogLine(state, L"writer thread stopped");
+    }
+}
+
+void* AmfCreate(ID3D11Device* device, ID3D11Texture2D* firstTexture, int width, int height, int fps, int bitrateKbps, int codec, int quality, int rateControlMode, int maxBitrateKbps, int queueDepth, int enablePreAnalysis, int enableDebugLog, const wchar_t* outputPath)
+{
+    if (!device || !firstTexture || !outputPath)
+    {
+        return nullptr;
+    }
+
+    auto* state = new EncoderState();
+    state->outputPath = outputPath;
+    state->logEnabled = enableDebugLog != 0;
+    OpenLog(state);
+    LogLine(state, L"create AMF encoder");
+
+    if (!InitializeEncoder(state, device, width, height, fps, bitrateKbps, codec, quality, rateControlMode, maxBitrateKbps, queueDepth, enablePreAnalysis, firstTexture))
+    {
+        return state;
+    }
+
+    std::vector<uint8_t> empty;
+    if (!InitializeMp4Writer(state, codec == 1, empty))
+    {
+        return state;
+    }
+
+    LogLine(state, L"AMF encoder initialized");
+    return state;
+}
+
+int AmfEncode(void* handle, ID3D11Texture2D* texture)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state || !texture)
+    {
+        return 0;
+    }
+
+    if (!EncodeTexture(state, texture))
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+int AmfWriteAudio(void* handle, const float* samples, int sampleCount, int sampleRate, int channels)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state || !samples || sampleCount <= 0)
+    {
+        return 1;
+    }
+
+    if (!InitializeAudioEncoder(state, sampleRate, channels))
+    {
+        return 0;
+    }
+
+    const uint32_t frameSamples = 1024;
+    state->audioPcmBuffer.reserve(state->audioPcmBuffer.size() + static_cast<size_t>(sampleCount));
+    for (int i = 0; i < sampleCount; ++i)
+    {
+        float v = samples[i];
+        v = ClampFloat(v, -1.0f, 1.0f);
+        int16_t s = static_cast<int16_t>(v * 32767.0f);
+        state->audioPcmBuffer.push_back(s);
+    }
+
+    const uint32_t channelsCount = static_cast<uint32_t>(channels);
+    const size_t frameCount = static_cast<size_t>(frameSamples) * channelsCount;
+    while (state->audioPcmBuffer.size() - state->audioPcmRead >= frameCount)
+    {
+        const int16_t* frame = state->audioPcmBuffer.data() + state->audioPcmRead;
+        if (!EncodeAudioFrame(state, frame, frameSamples))
+        {
+            return 0;
+        }
+        state->audioPcmRead += frameCount;
+    }
+
+    if (state->audioPcmRead > 0 && state->audioPcmRead > 8192)
+    {
+        state->audioPcmBuffer.erase(state->audioPcmBuffer.begin(), state->audioPcmBuffer.begin() + static_cast<long long>(state->audioPcmRead));
+        state->audioPcmRead = 0;
+    }
+
+    return 1;
+}
+
+int AmfFinalize(void* handle)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state)
+    {
+        return 0;
+    }
+    if (state->hasError)
+    {
+        LogLine(state, L"finalize skipped because encoder is already in error state");
+        StopWriterThread(state);
+        state->file.Close();
+        return 0;
+    }
+
+
+    if (state->encoder)
+    {
+        auto status = state->encoder->Drain();
+        if (!CheckStatus(state, status, L"AMF encoder Drain failed"))
+        {
+            return 0;
+        }
+        if (!DrainAmfOutput(state, true))
+        {
+            return 0;
+        }
+        LogLine(state, L"AMF drain completed");
+    }
+
+    LogLine(state, L"stats submitted=" + std::to_wstring(state->submittedFrames)
+        + L" converted=" + std::to_wstring(state->convertedFrames)
+        + L" outputs=" + std::to_wstring(state->encodedOutputs)
+        + L" converterInputFull=" + std::to_wstring(state->converterInputFullCount)
+        + L" converterWait=" + std::to_wstring(state->converterRepeatCount)
+        + L" encoderInputFull=" + std::to_wstring(state->encoderInputFullCount)
+        + L" encoderWait=" + std::to_wstring(state->encoderRepeatCount)
+        + L" audioNeedInput=" + std::to_wstring(state->audioNeedInputCount)
+        + L" videoSamples=" + std::to_wstring(state->sampleSizes.size())
+        + L" audioSamples=" + std::to_wstring(state->audioSampleSizes.size()));
+
+    if (!FinalizeMp4(state))
+    {
+        return 0;
+    }
+
+    return 1;
+}
+
+void AmfDestroy(void* handle)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state)
+    {
+        return;
+    }
+
+    LogLine(state, L"destroy");
+    if (!state->mp4Finalized && !state->hasError)
+    {
+        AmfFinalize(handle);
+    }
+    else if (state->hasError)
+    {
+        LogLine(state, L"destroy skips finalize because encoder is in error state");
+    }
+
+    // AMF surfaces must be released while the AMF context and module are alive.
+    for (int i = 0; i < EncoderState::POOL_SIZE; ++i)
+    {
+        state->pool[i].cachedSurface.Release();
+        if (state->pool[i].texture)
+        {
+            state->pool[i].texture->Release();
+            state->pool[i].texture = nullptr;
+        }
+    }
+
+    if (state->encoder)
+    {
+        state->encoder->Terminate();
+        state->encoder.Release();
+    }
+    if (state->converter)
+    {
+        state->converter->Terminate();
+        state->converter.Release();
+    }
+    if (state->context)
+    {
+        state->context->Terminate();
+        state->context.Release();
+    }
+
+    if (state->aacEncoder)
+    {
+        state->aacEncoder->Release();
+        state->aacEncoder = nullptr;
+    }
+
+    if (state->mfStarted)
+    {
+        MFShutdown();
+        state->mfStarted = false;
+    }
+
+    if (state->comInitialized)
+    {
+        CoUninitialize();
+        state->comInitialized = false;
+    }
+
+    if (state->amfModule)
+    {
+        FreeLibrary(state->amfModule);
+        state->amfModule = nullptr;
+    }
+    if (state->inputTexture)
+    {
+        state->inputTexture->Release();
+        state->inputTexture = nullptr;
+    }
+    if (state->deviceContext)
+    {
+        state->deviceContext->Release();
+        state->deviceContext = nullptr;
+    }
+    if (state->device)
+    {
+        state->device->Release();
+        state->device = nullptr;
+    }
+
+
+    StopWriterThread(state);
+    // Ensure output file handle is released even if finalize failed or was skipped.
+    state->file.Close();
+
+    CloseLog(state);
+    delete state;
+}
+
+ID3D11Texture2D* AmfAcquireTexture(void* handle)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state)
+    {
+        return nullptr;
+    }
+
+    std::lock_guard<std::mutex> lock(state->poolMutex);
+
+    // Find an unused slot that already has a texture
+    for (int i = 0; i < EncoderState::POOL_SIZE; ++i)
+    {
+        if (state->pool[i].texture && !state->pool[i].inUse)
+        {
+            state->pool[i].inUse = true;
+            return state->pool[i].texture;
+        }
+    }
+
+    // Initialize texture for the first unused slot
+    for (int i = 0; i < EncoderState::POOL_SIZE; ++i)
+    {
+        if (!state->pool[i].texture)
+        {
+            if (!state->inputTexture)
+            {
+                // Fallback if not initialized yet
+                return nullptr;
+            }
+
+            D3D11_TEXTURE2D_DESC desc{};
+            state->inputTexture->GetDesc(&desc);
+            desc.Usage = D3D11_USAGE_DEFAULT;
+            desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+            desc.CPUAccessFlags = 0;
+            desc.MiscFlags = 0;
+
+            ID3D11Texture2D* newTex = nullptr;
+            if (FAILED(state->device->CreateTexture2D(&desc, nullptr, &newTex)) || !newTex)
+            {
+                return nullptr;
+            }
+
+            state->pool[i].texture = newTex;
+            state->pool[i].inUse = true;
+            return newTex;
+        }
+    }
+
+    // Fallback: allocate a temporary texture (will be freed on Release)
+    if (!state->inputTexture)
+    {
+        return nullptr;
+    }
+    D3D11_TEXTURE2D_DESC desc{};
+    state->inputTexture->GetDesc(&desc);
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    desc.CPUAccessFlags = 0;
+    desc.MiscFlags = 0;
+
+    ID3D11Texture2D* tempTex = nullptr;
+    state->device->CreateTexture2D(&desc, nullptr, &tempTex);
+    return tempTex;
+}
+
+void AmfReleaseTexture(void* handle, ID3D11Texture2D* texture)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state || !texture)
+    {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(state->poolMutex);
+
+    for (int i = 0; i < EncoderState::POOL_SIZE; ++i)
+    {
+        if (state->pool[i].texture == texture)
+        {
+            state->pool[i].inUse = false;
+            return;
+        }
+    }
+
+    // If it was a temporary fallback texture, release it now
+    texture->Release();
+}
+
+const wchar_t* AmfGetLastError(void* handle)
+{
+    auto* state = reinterpret_cast<EncoderState*>(handle);
+    if (!state)
+    {
+        return L"";
+    }
+    return state->lastError.c_str();
+}

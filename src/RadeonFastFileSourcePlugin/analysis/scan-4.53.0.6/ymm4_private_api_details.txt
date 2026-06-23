@@ -1,0 +1,2532 @@
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ViewModels.MainViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_WindowCloseControlView() : YukkuriMovieMaker.ViewModels.WindowCloseControlViewModel
+  METHOD	public	get_MessageBoxViewModel() : YukkuriMovieMaker.ViewModels.MessageBoxViewModel
+  METHOD	public	get_OpenFileDialogViewModel() : YukkuriMovieMaker.ViewModels.OpenFileDialogViewModel
+  METHOD	public	get_SaveFileDialogViewModel() : YukkuriMovieMaker.ViewModels.SaveFileDialogViewModel
+  METHOD	public	get_Title() : Reactive.Bindings.IReadOnlyReactiveProperty`1<String>
+  METHOD	public	get_StatusBarViewModel() : Reactive.Bindings.IReadOnlyReactiveProperty`1<YukkuriMovieMaker.ViewModels.StatusBarViewModel>
+  METHOD	public	get_ModalViewModel() : Reactive.Bindings.IReactiveProperty`1<System.ComponentModel.INotifyPropertyChanged>
+  METHOD	public	get_ChildWindowViewModels() : Reactive.Bindings.ReactiveCollection`1<System.ComponentModel.INotifyPropertyChanged>
+  METHOD	public	get_WindowState() : YukkuriMovieMaker.Settings.WindowState
+  METHOD	public	get_AddTemplateContextMenuViewModel() : YukkuriMovieMaker.ViewModels.AddTemplateContextMenuViewModel
+  METHOD	public	get_AddSceneTimelineTemplateContextMenuViewModel() : YukkuriMovieMaker.ViewModels.AddTemplateContextMenuViewModel
+  METHOD	public	get_BackupFiles() : Reactive.Bindings.ReadOnlyReactiveProperty`1<System.Collections.Immutable.ImmutableList`1<String>>
+  METHOD	public	get_AsyncAwaitStatus() : YukkuriMovieMaker.Project.AsyncAwaitStatus
+  METHOD	public	get_CommandBindings() : System.Collections.ObjectModel.ObservableCollection`1<System.Windows.Input.CommandBinding>
+  METHOD	public	get_SaveProjectOnCloseWindowCommand() : Reactive.Bindings.ReactiveCommand`1<System.ComponentModel.CancelEventArgs>
+  METHOD	public	get_Index() : Int32
+  METHOD	public	get_IsEmptyProject() : Boolean
+  METHOD	public	get_IsSaved() : Boolean
+  METHOD	public	get_KeepProjectPath() : Boolean
+  METHOD	public	set_KeepProjectPath(Boolean value) : Void
+  METHOD	public	get_IsSkipSaveDialogWhenClosingEnabled() : Boolean
+  METHOD	public	set_IsSkipSaveDialogWhenClosingEnabled(Boolean value) : Void
+  METHOD	public	get_ProjectFilePath() : Reactive.Bindings.IReadOnlyReactiveProperty`1<String>
+  METHOD	public	get_ActiveTimelineViewModel() : YukkuriMovieMaker.ViewModels.TimelineViewModel
+  METHOD	public	get_DocumentViewModels() : Reactive.Bindings.ReactiveCollection`1<YukkuriMovieMaker.ViewModels.DocumentAreaViewModel>
+  METHOD	public	get_AnchorableAreaViewModels() : Reactive.Bindings.ReactiveCollection`1<YukkuriMovieMaker.ViewModels.IToolAreaViewModel>
+  METHOD	public	get_LayoutService() : YukkuriMovieMaker.Views.Dock.LayoutService
+  METHOD	public	get_ActiveContent() : YukkuriMovieMaker.ViewModels.IAreaViewModel
+  METHOD	public	set_ActiveContent(YukkuriMovieMaker.ViewModels.IAreaViewModel value) : Void
+  METHOD	public	get_AvalonDockDocumentClosing() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_AvalonDockAnchorableClose() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_AvalonDockAnchorableClosed() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_SaveLayoutCommand() : System.Windows.Input.ICommand
+  METHOD	public	get_RestoreLayoutCommand() : System.Windows.Input.ICommand
+  METHOD	public	get_HasAnySceneOrSceneItems() : Boolean
+  METHOD	public	.ctor(Int32 index) : Void
+  METHOD	private	CreateToolAreaViewModel(YukkuriMovieMaker.Plugin.IToolPlugin tool, System.Guid sessionId) : YukkuriMovieMaker.ViewModels.ToolAreaViewModel
+  METHOD	private	ToolAreaViewModel_CreateNewToolViewRequested(Object sender, YukkuriMovieMaker.Plugin.CreateNewToolViewRequestedEventArgs e) : Void
+  METHOD	private	UndoRedoManager_HistoryChanged(Object sender, System.EventArgs e) : Void
+  METHOD	private	Timeline_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	ShowItemEditorIfItemSelected() : Void
+  METHOD	private	RestoreLayout(String layoutXml, System.Collections.Generic.Dictionary`2<String, YukkuriMovieMaker.Plugin.SerializableToolState> toolStates) : Void
+  METHOD	private	Model_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	Scenes_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	MainViewModel_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	public	CreateDumpFile() : Void
+  METHOD	public	AddCustomVoice(YukkuriMovieMaker.Project.Character character, String file) : System.Threading.Tasks.Task
+  METHOD	private	GetActivePreviewViewModel() : YukkuriMovieMaker.ViewModels.PreviewViewModel
+  METHOD	private	CreateScenePreviewViewModel(System.Guid sceneGuid) : YukkuriMovieMaker.ViewModels.ScenePreviewToolAreaViewModel
+  METHOD	private	GetPreviewViewModelOfScene() : YukkuriMovieMaker.ViewModels.PreviewViewModel
+  METHOD	private	SeekPreviewAsync(Int32 frame) : System.Threading.Tasks.Task
+  METHOD	private	StopPreviewAsync() : System.Threading.Tasks.Task
+  METHOD	private	PausePreviewAsync() : System.Threading.Tasks.Task
+  METHOD	private	TogglePlayPreviewAsync() : System.Threading.Tasks.Task
+  METHOD	private	RefreshPreviewAsync() : System.Threading.Tasks.Task
+  METHOD	private	StopPreviewPlayerThreadAsync() : System.Threading.Tasks.Task
+  METHOD	private	RestartPreviewPlayerThreadAsync() : System.Threading.Tasks.Task
+  METHOD	private	UpdateAudioLevelMeterBindings() : Void
+  METHOD	private	UpdateAudioLevelMeterBinding(YukkuriMovieMaker.ViewModels.TimelineViewModel timelineVM) : Void
+  METHOD	private	CreateCommandBindings() : System.Collections.Generic.IEnumerable`1<System.Windows.Input.CommandBinding>
+  METHOD	private	SelectSceneAsync(YukkuriMovieMaker.Project.Timeline timeline) : System.Threading.Tasks.Task
+  METHOD	private	DeleteSceneAsync(System.Guid sceneId) : System.Threading.Tasks.Task
+  METHOD	private	ImportTemplates(System.Collections.Generic.IEnumerable`1<String> files) : Int32
+  METHOD	public	SuggestYMMPAssociation() : Void
+  METHOD	private	AssociateYMMP(Boolean register) : Void
+  METHOD	private	GetCurrentLayer() : Int32
+  METHOD	public	AddFileItemAsync(String file) : System.Threading.Tasks.Task
+  METHOD	private	AddFileItemAsync(Int32 frame, Int32 layer, GroupedFile[] files) : System.Threading.Tasks.Task
+  METHOD	private	InstallPlugins(System.Collections.Generic.IEnumerable`1<String> files) : Void
+  METHOD	private	ShowMessageBox(String message, String caption, System.Windows.MessageBoxButton button) : System.Windows.MessageBoxResult
+  METHOD	private	ShowFileDialog(Microsoft.Win32.FileDialog dialog) : Boolean
+  METHOD	private	ShowSelectFolderDialog(System.Windows.Forms.FolderBrowserDialog dialog) : Boolean
+  METHOD	private	ShowOpenFileDialog(YukkuriMovieMaker.Settings.FileGroup fileGroup, String fileName, String customFilter, Boolean multiselect) : String[]
+  METHOD	private	ShowSaveFileDialog(YukkuriMovieMaker.Settings.FileGroup fileGroup, String fileName, String customFilter) : String
+  METHOD	private	ShowSelectFolderDialog(YukkuriMovieMaker.Settings.DirectoryGroup directoryGroup) : String
+  METHOD	private	CreateVideoInfo() : System.ValueTuple`2<YukkuriMovieMaker.Project.VideoInfo, YukkuriMovieMaker.Project.TimelineVerticalLine>
+  METHOD	private	SaveVideoInfoToDefault(YukkuriMovieMaker.Project.VideoInfo info, YukkuriMovieMaker.Project.TimelineVerticalLine verticalLine) : Void
+  METHOD	public	CreateProject() : Void
+  METHOD	private	CloseProject() : Void
+  METHOD	public	Close() : Void
+  METHOD	public	OpenBackupProject(String project, String backup) : Void
+  METHOD	public	OpenProject(String file) : Void
+  METHOD	private	ClearProjectTemporaryToolState() : Void
+  METHOD	public	SaveProject(String file) : Void
+  METHOD	private	OutputExoFile() : Void
+  METHOD	private	CreateExoFileAsync(String file, YukkuriMovieMaker.Commons.ProgressMessage progressMessage) : System.Threading.Tasks.Task
+  METHOD	private	OutputMp4File() : System.Threading.Tasks.Task
+  METHOD	private	CreateMp4FileAsync(YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriterPlugin plugin, String file, YukkuriMovieMaker.Project.Scene scene, YukkuriMovieMaker.Commons.ProgressMessage progressMessage, System.Threading.CancellationToken token) : System.Threading.Tasks.Task
+  METHOD	public	CreateBackup() : Void
+  METHOD	private	EscapeFileName(String fileName) : String
+  METHOD	public	Dispose() : Void
+  METHOD	private	RemoveTemplateNameRegex() : System.Text.RegularExpressions.Regex
+  METHOD	private	TemplateNumberingRegex() : System.Text.RegularExpressions.Regex
+  METHOD	private	<get_ActiveTimelineViewModel>b__68_0(YukkuriMovieMaker.ViewModels.DocumentAreaViewModel x) : Boolean
+  METHOD	private	<.ctor>b__99_2(YukkuriMovieMaker.Project.Timeline x) : YukkuriMovieMaker.ViewModels.StatusBarViewModel
+  METHOD	private	<.ctor>b__99_3(Object s, YukkuriMovieMaker.Views.Dock.ContentResolvingEventArgs a) : Void
+  METHOD	private	<.ctor>b__99_5(Object _) : Void
+  METHOD	private	<.ctor>b__99_7(Object _) : Void
+  METHOD	private	<.ctor>b__99_8(System.Collections.Specialized.NotifyCollectionChangedEventArgs x) : Void
+  METHOD	private	<.ctor>b__99_10(Reactive.Bindings.Extensions.PropertyPack`2<YukkuriMovieMaker.ViewModels.DocumentAreaViewModel, Boolean> x) : Void
+  METHOD	private	<.ctor>b__99_11(System.Collections.Specialized.NotifyCollectionChangedEventArgs x) : Void
+  METHOD	private	<.ctor>b__99_45(YukkuriMovieMaker.ViewModels.ScenePreviewToolAreaViewModel areaVM) : YukkuriMovieMaker.ViewModels.TimelineViewModel
+  METHOD	private	<.ctor>b__99_14(YukkuriMovieMaker.ViewModels.ScenePreviewToolAreaViewModel areaVM) : Void
+  METHOD	private	<.ctor>b__99_16(Boolean _) : Void
+  METHOD	private	<.ctor>b__99_21(Reactive.Bindings.Extensions.SenderEventArgsPair`2<YukkuriMovieMaker.Project.Character, System.ComponentModel.PropertyChangedEventArgs> x) : Void
+  METHOD	private	<.ctor>b__99_22(System.Collections.Specialized.NotifyCollectionChangedEventArgs _) : Void
+  METHOD	private	<.ctor>b__99_24(Reactive.Bindings.Extensions.SenderEventArgsPair`2<YukkuriMovieMaker.Settings.ItemTemplate, System.ComponentModel.PropertyChangedEventArgs> x) : Void
+  METHOD	private	<.ctor>b__99_25(System.Collections.Specialized.NotifyCollectionChangedEventArgs _) : Void
+  METHOD	private	<.ctor>b__99_27(System.ComponentModel.CancelEventArgs arg) : Void
+  METHOD	private	<.ctor>b__99_29(Object x) : Void
+  METHOD	private	<.ctor>b__99_31(Object x) : Void
+  METHOD	private	<.ctor>b__99_33(Object x) : Void
+  METHOD	private	<Model_PropertyChanged>b__106_0(YukkuriMovieMaker.ViewModels.DocumentAreaViewModel vm) : Boolean
+  METHOD	private	<Scenes_PropertyChanged>b__107_0(YukkuriMovieMaker.Project.Timeline x) : Boolean
+  METHOD	private	<Scenes_PropertyChanged>b__107_1(YukkuriMovieMaker.ViewModels.DocumentAreaViewModel x) : Boolean
+  METHOD	private	<Scenes_PropertyChanged>b__107_2(YukkuriMovieMaker.ViewModels.ScenePreviewToolAreaViewModel x) : Boolean
+  METHOD	private	<GetPreviewViewModelOfScene>b__113_0(YukkuriMovieMaker.ViewModels.ScenePreviewToolAreaViewModel x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_0(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_1(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_2(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_3(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_4(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_5(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_6(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_7(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_8(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_9(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_10(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_11(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_12(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_13(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_14(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_469(YukkuriMovieMaker.Project.Items.IItem x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_15(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_16(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_17(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_18(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_19(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_20(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_21(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_22(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_23(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_24(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_25(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_26(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_27(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_28(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_29(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_30(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_31(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_32(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_33(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_34(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_35(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_36(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_37(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_38(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_39(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_40(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_41(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_42(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_43(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_44(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_45(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_46(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_47(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_48(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_49(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_50(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_51(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_52(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_53(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_54(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_55(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_56(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_57(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_58(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_59(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_60(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_61(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_62(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_63(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_64(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_65(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_66(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_67(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_68(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_69(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_70(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_71(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_72(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_73(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_74(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_75(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_76(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_77(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_78(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_79(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_80(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_81(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_82(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_84(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_85(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_86(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_87(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_88(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_89(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_90(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_91(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_92(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_93(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_94(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_95(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_96(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_97(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_98(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_99(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_100(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_101(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_102(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_103(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_104(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_105(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_106(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_107(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_108(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_109(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_110(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_111(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_112(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_113(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_114(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_115(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_116(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_117(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_118(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_119(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_120(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_121(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_122(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_123(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_124(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_125(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_126(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_127(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_128(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_129(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_130(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_131(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_132(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_133(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_134(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_135(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_136(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_137(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_138(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_139(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_140(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_141(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_142(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_143(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_144(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_145(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_146(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_147(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_148(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_149(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_150(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_151(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_152(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_153(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_154(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_155(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_156(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_157(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_158(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_159(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_160(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_161(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_162(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_163(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_164(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_165(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_166(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_167(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_168(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_169(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_170(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_171(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_172(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_173(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_174(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_175(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_176(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_178(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_179(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_180(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_181(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_182(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_184(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_185(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_187(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_189(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_191(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_193(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_195(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_196(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_197(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_198(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_199(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_200(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_201(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_501(Int32 x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_202(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_203(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_504(Int32 x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_204(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_205(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_206(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_207(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_219(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_221(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_227(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_229(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_231(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_233(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_245(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_246(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_247(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_248(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_249(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_250(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_251(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_252(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_253(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_254(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_255(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_256(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_257(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_258(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_259(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_260(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_261(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_262(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_263(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_264(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_265(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_266(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_267(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_268(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_269(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_270(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_271(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_272(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_273(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_274(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_275(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_276(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_508(YukkuriMovieMaker.Project.Items.IItem x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_291(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_292(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_294(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_295(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_299(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_303(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>g__OpenToolWindow|123_313() : YukkuriMovieMaker.ViewModels.IToolAreaViewModel
+  METHOD	private	<CreateCommandBindings>g__OpenToolWindowFromType|123_314(System.Type type) : YukkuriMovieMaker.ViewModels.IToolAreaViewModel
+  METHOD	private	<CreateCommandBindings>g__GetToolWindow|123_315() : YukkuriMovieMaker.ViewModels.IToolAreaViewModel
+  METHOD	private	<CreateCommandBindings>g__HideToolWindow|123_316() : Void
+  METHOD	private	<CreateCommandBindings>b__123_317(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_319(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_321(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_323(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_325(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_327(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_328(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_329(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_330(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_331(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_332(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_333(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_334(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_335(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_337(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_339(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_341(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_343(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_345(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_347(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_348(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_349(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_350(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_351(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_352(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_353(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_354(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_355(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_356(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_357(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_358(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_359(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_360(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_361(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_362(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_363(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_364(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_365(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_366(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_367(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_368(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_369(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_370(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_371(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_372(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_373(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_374(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_375(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_376(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_377(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_378(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_379(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_381(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_383(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_385(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_387(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_389(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_395(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_396(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_397(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_398(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_399(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_400(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_401(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_402(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_403(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_404(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_405(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_406(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_407(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_408(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_409(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_410(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_411(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_412(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_413(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_414(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_415(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_416(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_417(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_418(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_419(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_420(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_421(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_422(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_423(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_424(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_425(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_427(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_429(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_431(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_433(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_438(YukkuriMovieMaker.Settings.ItemTemplate template) : System.Windows.Input.CommandBinding
+  METHOD	private	<CreateCommandBindings>b__123_530(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_439(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_531(YukkuriMovieMaker.Project.Items.VoiceItem x) : Boolean
+  METHOD	private	<CreateCommandBindings>b__123_441(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_443(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_444(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_445(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_446(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_447(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_448(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_449(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_450(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_451(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_452(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_453(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_454(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_455(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_456(Object s, System.Windows.Input.CanExecuteRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_457(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_459(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_460(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_462(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_464(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  METHOD	private	<CreateCommandBindings>b__123_466(Object s, System.Windows.Input.ExecutedRoutedEventArgs a) : Void
+  PROP	WindowCloseControlView
+  PROP	MessageBoxViewModel
+  PROP	OpenFileDialogViewModel
+  PROP	SaveFileDialogViewModel
+  PROP	Title
+  PROP	StatusBarViewModel
+  PROP	ModalViewModel
+  PROP	ChildWindowViewModels
+  PROP	WindowState
+  PROP	AddTemplateContextMenuViewModel
+  PROP	AddSceneTimelineTemplateContextMenuViewModel
+  PROP	BackupFiles
+  PROP	AsyncAwaitStatus
+  PROP	CommandBindings
+  PROP	SaveProjectOnCloseWindowCommand
+  PROP	Index
+  PROP	IsEmptyProject
+  PROP	IsSaved
+  PROP	KeepProjectPath
+  PROP	IsSkipSaveDialogWhenClosingEnabled
+  PROP	ProjectFilePath
+  PROP	ActiveTimelineViewModel
+  PROP	DocumentViewModels
+  PROP	AnchorableAreaViewModels
+  PROP	LayoutService
+  PROP	ActiveContent
+  PROP	AvalonDockDocumentClosing
+  PROP	AvalonDockAnchorableClose
+  PROP	AvalonDockAnchorableClosed
+  PROP	SaveLayoutCommand
+  PROP	RestoreLayoutCommand
+  PROP	HasAnySceneOrSceneItems
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ViewModels.TachieItemCharacterNameSearchResult (internal)
+base: System.Object
+  METHOD	public	get_Item() : YukkuriMovieMaker.Project.Items.IItem
+  METHOD	public	get_HitText() : String
+  METHOD	private	.ctor(YukkuriMovieMaker.Project.Items.TachieItem item, YukkuriMovieMaker.ViewModels.SearchContext context) : Void
+  METHOD	public	TryMatch(YukkuriMovieMaker.Project.Items.TachieItem item, YukkuriMovieMaker.ViewModels.SearchContext context, YukkuriMovieMaker.ViewModels.TachieItemCharacterNameSearchResult& result) : Boolean
+  METHOD	public	Replace(String to) : Void
+  PROP	Item
+  PROP	HitText
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ViewModels.TachieFaceItemItemCharacterNameSearchResult (internal)
+base: System.Object
+  METHOD	public	get_Item() : YukkuriMovieMaker.Project.Items.IItem
+  METHOD	public	get_HitText() : String
+  METHOD	private	.ctor(YukkuriMovieMaker.Project.Items.TachieFaceItem item, YukkuriMovieMaker.ViewModels.SearchContext context) : Void
+  METHOD	public	TryMatch(YukkuriMovieMaker.Project.Items.TachieFaceItem item, YukkuriMovieMaker.ViewModels.SearchContext context, YukkuriMovieMaker.ViewModels.TachieFaceItemItemCharacterNameSearchResult& result) : Boolean
+  METHOD	public	Replace(String to) : Void
+  PROP	Item
+  PROP	HitText
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.VideoFileWriter.EmptyVideoFileWriterPlugin (internal)
+base: System.Object
+  METHOD	public	get_OutputPathMode() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterOutputPath
+  METHOD	public	get_Name() : String
+  METHOD	public	CreateVideoFileWriter(String path, YukkuriMovieMaker.Project.VideoInfo videoInfo) : YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter
+  METHOD	public	DownloadResources(YukkuriMovieMaker.Commons.ProgressMessage progress, System.Threading.CancellationToken token) : System.Threading.Tasks.Task
+  METHOD	public	GetFileExtention() : String
+  METHOD	public	GetVideoConfigView(String projectName, YukkuriMovieMaker.Project.VideoInfo videoInfo, Int32 length) : System.Windows.UIElement
+  METHOD	public	NeedDownloadResources() : Boolean
+  METHOD	public	.ctor() : Void
+  PROP	OutputPathMode
+  PROP	Name
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.VideoFileWriter.VideoFileWriter (internal)
+base: System.Object
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Scene scene, YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriterPlugin plugin, String path) : Void
+  METHOD	private	GetDb(Single volume) : Single
+  METHOD	private	GetVolume(Single deltaDb) : Single
+  METHOD	private	FixLoudnessVolume(Single targetLoudness, Single averageLoudness) : System.ValueTuple`2<Single, Single>
+  METHOD	private	GetCompressorRate(Single peakDB) : Single
+  METHOD	public	CreateFileAsync(YukkuriMovieMaker.Commons.ProgressMessage progressMessage, System.Threading.CancellationToken cancellationToken) : System.Threading.Tasks.Task
+  METHOD	private	CreateVolumeAdjustMessage(Single averageLoudness, Single loudnessFix, Single volumeRate, Single peakDb, Single compressorRate) : String
+  METHOD	private	GetAverageSpeed(Double avgSpeed, Boolean isFirst, Int64 lastSpeed) : Double
+  METHOD	private	GetRemainingTimeText(System.TimeSpan remainingTime) : String
+  METHOD	private	Render(YukkuriMovieMaker.Player.Video.TimelineSource videoSource, Vortice.Direct2D1.ID2D1Bitmap targetBitmap, Int32 frame) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Project.Items.TachieFaceItem (public)
+base: YukkuriMovieMaker.Project.Items.BaseItem
+  METHOD	public	get_ContentLength() : System.TimeSpan
+  METHOD	public	get_OriginalContentLength() : System.TimeSpan
+  METHOD	public	get_Label() : String
+  METHOD	public	get_Description() : String
+  METHOD	public	get_SetToDefaultDummy() : Object
+  METHOD	public	set_Character(YukkuriMovieMaker.Project.Character value) : Void
+  METHOD	public	get_Character() : YukkuriMovieMaker.Project.Character
+  METHOD	public	set_CharacterName(String value) : Void
+  METHOD	public	get_CharacterName() : String
+  METHOD	public	get_ItemColor() : System.Windows.Media.Color
+  METHOD	public	set_ItemColor(System.Windows.Media.Color value) : Void
+  METHOD	public	set_TachieFaceParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter value) : Void
+  METHOD	public	get_TachieFaceParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	public	set_TachieFaceEffects(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Effects.IVideoEffect> value) : Void
+  METHOD	public	get_TachieFaceEffects() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Effects.IVideoEffect>
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Character character) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Items.VoiceItem item) : Void
+  METHOD	public	ResetFaceParameter() : Void
+  METHOD	public	GetExoItemsAsync(YukkuriMovieMaker.Exo.ExoOutputDescription outputDescription) : System.Collections.Generic.IAsyncEnumerable`1<YukkuriMovieMaker.Commons.ExoItem>
+  METHOD	public	GetClone() : YukkuriMovieMaker.Project.Items.IItem
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	public	BeginEdit() : Void
+  METHOD	public	EndEditAsync() : System.Threading.Tasks.ValueTask
+  METHOD	private	TachieFaceItem_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	<>n__0() : System.Threading.Tasks.ValueTask
+  PROP	ContentLength
+  PROP	OriginalContentLength
+  PROP	Label
+  PROP	Description
+  PROP	SetToDefaultDummy
+  PROP	Character
+  PROP	CharacterName
+  PROP	ItemColor
+  PROP	TachieFaceParameter
+  PROP	TachieFaceEffects
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Project.Items.TachieItem (public)
+base: YukkuriMovieMaker.Project.Items.VisualItem
+  METHOD	public	get_ContentLength() : System.TimeSpan
+  METHOD	public	get_OriginalContentLength() : System.TimeSpan
+  METHOD	public	get_Label() : String
+  METHOD	public	get_Description() : String
+  METHOD	public	get_SetToDefaultDummy() : Object
+  METHOD	public	set_Character(YukkuriMovieMaker.Project.Character value) : Void
+  METHOD	public	get_Character() : YukkuriMovieMaker.Project.Character
+  METHOD	public	get_ItemColor() : System.Windows.Media.Color
+  METHOD	public	set_ItemColor(System.Windows.Media.Color value) : Void
+  METHOD	public	set_CharacterName(String value) : Void
+  METHOD	public	get_CharacterName() : String
+  METHOD	public	set_TachieItemParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter value) : Void
+  METHOD	public	get_TachieItemParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Character character) : Void
+  METHOD	public	ResetTachieParameter() : Void
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	CreateVideoSource(YukkuriMovieMaker.Commons.IGraphicsDevices devices, YukkuriMovieMaker.Project.Scene scene) : YukkuriMovieMaker.Player.Video.ISource
+  METHOD	public	GetExoItemsAsync(YukkuriMovieMaker.Exo.ExoOutputDescription outputDescription) : System.Collections.Generic.IAsyncEnumerable`1<YukkuriMovieMaker.Commons.ExoItem>
+  METHOD	public	GetClone() : YukkuriMovieMaker.Project.Items.IItem
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	public	BeginEdit() : Void
+  METHOD	public	EndEditAsync() : System.Threading.Tasks.ValueTask
+  METHOD	private	TachieItem_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	<>n__0() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	private	<>n__1() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	private	<>n__2() : System.Threading.Tasks.ValueTask
+  PROP	ContentLength
+  PROP	OriginalContentLength
+  PROP	Label
+  PROP	Description
+  PROP	SetToDefaultDummy
+  PROP	Character
+  PROP	ItemColor
+  PROP	CharacterName
+  PROP	TachieItemParameter
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Project.Items.VideoItem (public)
+base: YukkuriMovieMaker.Project.Items.VisualItem
+  METHOD	public	.ctor() : Void
+  METHOD	private	OnItemColorChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	public	.ctor(String file) : Void
+  METHOD	public	set_IsWaveformEnabled(Boolean value) : Void
+  METHOD	public	get_IsWaveformEnabled() : Boolean
+  METHOD	public	get_SetToDefaultDummy() : Object
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	get_FilePath() : String
+  METHOD	public	get_AudioTrackIndex() : Int32
+  METHOD	public	set_AudioTrackIndex(Int32 value) : Void
+  METHOD	public	get_Volume() : YukkuriMovieMaker.Commons.Animation
+  METHOD	public	get_Pan() : YukkuriMovieMaker.Commons.Animation
+  METHOD	public	set_PlaybackRate(Double value) : Void
+  METHOD	public	get_PlaybackRate() : Double
+  METHOD	public	get_ContentOffset() : System.TimeSpan
+  METHOD	public	set_ContentOffset(System.TimeSpan value) : Void
+  METHOD	public	set_IsLooped(Boolean value) : Void
+  METHOD	public	get_IsLooped() : Boolean
+  METHOD	public	set_EchoIsEnabled(Boolean value) : Void
+  METHOD	public	get_EchoIsEnabled() : Boolean
+  METHOD	public	set_EchoInterval(Double value) : Void
+  METHOD	public	get_EchoInterval() : Double
+  METHOD	public	set_EchoAttenuation(Double value) : Void
+  METHOD	public	get_EchoAttenuation() : Double
+  METHOD	public	get_AudioEffects() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Effects.IAudioEffect>
+  METHOD	public	set_AudioEffects(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Effects.IAudioEffect> value) : Void
+  METHOD	public	get_Label() : String
+  METHOD	public	get_ItemColor() : System.Windows.Media.Color
+  METHOD	public	set_ItemColor(System.Windows.Media.Color value) : Void
+  METHOD	public	get_Description() : String
+  METHOD	public	get_ContentLength() : System.TimeSpan
+  METHOD	public	get_OriginalContentLength() : System.TimeSpan
+  METHOD	public	get_ContentSeparations() : System.Collections.Generic.IEnumerable`1<System.TimeSpan>
+  METHOD	private	GetEchoLength() : System.TimeSpan
+  METHOD	public	CreateVideoSource(YukkuriMovieMaker.Commons.IGraphicsDevices devices, YukkuriMovieMaker.Project.Scene scene) : YukkuriMovieMaker.Player.Video.ISource
+  METHOD	public	CreateAudioSource(YukkuriMovieMaker.Project.Scene scene) : YukkuriMovieMaker.Player.Audio.AudioStreamBase
+  METHOD	public	GetExoItemsAsync(YukkuriMovieMaker.Exo.ExoOutputDescription outputDescription) : System.Collections.Generic.IAsyncEnumerable`1<YukkuriMovieMaker.Commons.ExoItem>
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	public	BeginEdit() : Void
+  METHOD	public	EndEditAsync() : System.Threading.Tasks.ValueTask
+  METHOD	public	GetClone() : YukkuriMovieMaker.Project.Items.IItem
+  METHOD	private	<>n__0() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	private	<>n__1() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	private	<>n__2() : System.Threading.Tasks.ValueTask
+  PROP	IsWaveformEnabled
+  PROP	SetToDefaultDummy
+  PROP	FilePath
+  PROP	AudioTrackIndex
+  PROP	Volume
+  PROP	Pan
+  PROP	PlaybackRate
+  PROP	ContentOffset
+  PROP	IsLooped
+  PROP	EchoIsEnabled
+  PROP	EchoInterval
+  PROP	EchoAttenuation
+  PROP	AudioEffects
+  PROP	Label
+  PROP	ItemColor
+  PROP	Description
+  PROP	ContentLength
+  PROP	OriginalContentLength
+  PROP	ContentSeparations
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Video.EffectedItemSource (internal)
+base: System.Object
+  METHOD	public	get_Source() : YukkuriMovieMaker.Player.Video.ISource
+  METHOD	private	set_DrawDescription(YukkuriMovieMaker.Player.Video.DrawDescription value) : Void
+  METHOD	public	get_DrawDescription() : YukkuriMovieMaker.Player.Video.DrawDescription
+  METHOD	public	set_ParentEffects(System.Collections.Generic.List`1<YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair> value) : Void
+  METHOD	public	get_ParentEffects() : System.Collections.Generic.List`1<YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair>
+  METHOD	private	set_Output(Vortice.Direct2D1.ID2D1Image value) : Void
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevices devices, YukkuriMovieMaker.Project.Items.IVideoItem item, YukkuriMovieMaker.Project.Scene scene) : Void
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  METHOD	public	GetZIndex() : Single
+  METHOD	private	UpdateSource(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  METHOD	private	UpdateEffects(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  METHOD	private	CreateEmptyDrawDescription() : YukkuriMovieMaker.Player.Video.DrawDescription
+  METHOD	public	SetAlphaMask(Vortice.Direct2D1.ID2D1Image mask) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	private	<UpdateEffects>b__28_0(YukkuriMovieMaker.Plugin.Effects.IVideoEffect effect) : YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair
+  PROP	Source
+  PROP	DrawDescription
+  PROP	ParentEffects
+  PROP	Output
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Video.TimelineSource (internal)
+base: System.Object
+  METHOD	public	set_NeedTimelineItemRects(Boolean value) : Void
+  METHOD	public	get_NeedTimelineItemRects() : Boolean
+  METHOD	public	get_TimelineItemRects() : System.Collections.Generic.List`1<System.ValueTuple`4<YukkuriMovieMaker.Project.Items.IVideoItem, Vortice.RawRectF, YukkuriMovieMaker.Player.Video.DrawDescription, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Video.VideoController>>>
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	get_Width() : Int32
+  METHOD	public	get_Height() : Int32
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, YukkuriMovieMaker.Project.Scene scene, YukkuriMovieMaker.Player.Video.IItemPicker itemPicker) : Void
+  METHOD	public	Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void
+  METHOD	protected	UpdateResources(System.TimeSpan time) : Void
+  METHOD	protected	GetOrderedTimelineResources() : System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<YukkuriMovieMaker.Project.Items.IVideoItem, YukkuriMovieMaker.Player.Video.EffectedItemSource>>
+  METHOD	private	DrawResource(YukkuriMovieMaker.Project.Items.IVideoItem item, YukkuriMovieMaker.Player.Video.EffectedItemSource source) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	NeedTimelineItemRects
+  PROP	TimelineItemRects
+  PROP	Output
+  PROP	Width
+  PROP	Height
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Video.Items.TachieSource (internal)
+base: System.Object
+  METHOD	public	set_ActiveVoice(YukkuriMovieMaker.Project.Items.VoiceItem value) : Void
+  METHOD	public	get_ActiveVoice() : YukkuriMovieMaker.Project.Items.VoiceItem
+  METHOD	public	get_ActiveFaces() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.Items.IFaceItem>
+  METHOD	public	set_ActiveFaces(System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.Items.IFaceItem> value) : Void
+  METHOD	public	get_Controllers() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Video.VideoController>
+  METHOD	public	get_Outputs() : System.Collections.Generic.IReadOnlyList`1<YukkuriMovieMaker.Player.Video.ISourceOutput>
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevices devices, YukkuriMovieMaker.Project.Items.TachieItem item, Int32 fps) : Void
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc) : Void
+  METHOD	private	DiagnoseTachie() : String
+  METHOD	private	SerializeTachieParameter(Object parameter) : String
+  METHOD	private	GetMouthShape(YukkuriMovieMaker.Project.Items.VoiceItem readingVoice, YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc) : YukkuriMovieMaker.Plugin.Voice.MouthShape
+  METHOD	private	GetVolume(Int32 frame, Int32 smooth) : Double
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	ActiveVoice
+  PROP	ActiveFaces
+  PROP	Controllers
+  PROP	Outputs
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Audio.EffectedItemSource (internal)
+base: YukkuriMovieMaker.Player.Audio.AudioStreamBase
+  METHOD	public	get_Hz() : Int32
+  METHOD	public	get_Duration() : Int64
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Items.IAudioItem item, YukkuriMovieMaker.Project.Scene scene, Int32 hz, Int32 fps, YukkuriMovieMaker.Settings.ResamplerMode resamplerMode, Boolean noVolumeControl, Boolean noEcho, Boolean noEffect) : Void
+  METHOD	protected	read(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+  METHOD	protected	seek(Int64 position) : Void
+  METHOD	private	Connect(YukkuriMovieMaker.Player.Audio.Effects.IAudioStream source, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Audio.Effects.IAudioEffectProcessor> effects) : YukkuriMovieMaker.Player.Audio.Effects.IAudioStream
+  PROP	Hz
+  PROP	Duration
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Audio.TimelineSource (internal)
+base: YukkuriMovieMaker.Player.Audio.AudioStreamBase
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Scene scene) : Void
+  METHOD	public	get_Duration() : Int64
+  METHOD	public	get_Hz() : Int32
+  METHOD	protected	seek(Int64 position) : Void
+  METHOD	protected	read(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+  METHOD	private	OpenCloseResources(System.TimeSpan start, System.TimeSpan end) : Void
+  METHOD	private	ReadResources(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+  METHOD	private	Add(Single& storage, Single value) : Void
+  PROP	Duration
+  PROP	Hz
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Player.Audio.TimelineSourceSampleProviderWithLevelMeter (internal)
+base: System.Object
+  METHOD	private	get_IsLevelMeterEnabled() : Boolean
+  METHOD	public	get_WaveFormat() : NAudio.Wave.WaveFormat
+  METHOD	public	get_LevelMeter() : YukkuriMovieMaker.Player.Audio.SoundLevelMeter
+  METHOD	public	add_ExceptionThrown(System.EventHandler`1<YukkuriMovieMaker.Player.TimelinePlayerExceptionThrownEventArgs> value) : Void
+  METHOD	public	remove_ExceptionThrown(System.EventHandler`1<YukkuriMovieMaker.Player.TimelinePlayerExceptionThrownEventArgs> value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Timeline timeline, YukkuriMovieMaker.Project.Scenes scenes, YukkuriMovieMaker.Player.Audio.SoundLevelMeter levelMeter) : Void
+  METHOD	public	Read(Single[] buffer, Int32 offset, Int32 count) : Int32
+  METHOD	public	Seek(System.TimeSpan position) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	IsLevelMeterEnabled
+  PROP	WaveFormat
+  PROP	LevelMeter
+  EVENT	ExceptionThrown
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ItemEditor.TimelineSourceAndDevices (public)
+base: System.Object
+  METHOD	public	get_Devices() : YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.Scene scene) : Void
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void
+  METHOD	public	RenderD2D1Bitmap() : Vortice.Direct2D1.ID2D1Bitmap1
+  METHOD	public	RenderBitmapMemoryStream() : System.IO.MemoryStream
+  METHOD	public	RenderBitmapSource() : System.Windows.Media.Imaging.BitmapSource
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	private	System.IDisposable.Dispose() : Void
+  PROP	Devices
+  PROP	Output
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ItemEditor.TimelineSourceAndDevicesHelper (internal)
+base: System.Object
+  METHOD	public	CreateMemoryStreamFrom(Vortice.Direct2D1.ID2D1Device device, Vortice.Direct2D1.ID2D1Bitmap1 bitmap) : System.IO.MemoryStream
+  METHOD	public	CreateBitmapSourceFrom(Vortice.Direct2D1.ID2D1Device device, Vortice.Direct2D1.ID2D1Bitmap1 bitmap) : System.Windows.Media.Imaging.BitmapSource
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.ItemEditor.PropertyEditors.TachieTypeComboBoxAttribute (public)
+base: YukkuriMovieMaker.Commons.PropertyEditorAttribute
+  METHOD	public	set_PropertyEditorSize(YukkuriMovieMaker.Commons.PropertyEditorSize value) : Void
+  METHOD	public	get_PropertyEditorSize() : YukkuriMovieMaker.Commons.PropertyEditorSize
+  METHOD	public	Create() : System.Windows.FrameworkElement
+  METHOD	public	SetBindings(System.Windows.FrameworkElement control, Object item, Object propertyOwner, System.Reflection.PropertyInfo propertyInfo) : Void
+  METHOD	public	ClearBindings(System.Windows.FrameworkElement control) : Void
+  METHOD	public	.ctor() : Void
+  PROP	PropertyEditorSize
+
+# [YukkuriMovieMaker.dll] YukkuriMovieMaker.Plugin.TachieSourceFactory (internal)
+base: System.Object
+  METHOD	private	GetPlugin(System.Type type) : YukkuriMovieMaker.Plugin.Tachie.ITachiePlugin
+  METHOD	internal	CreateSource(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, System.Type type) : YukkuriMovieMaker.Plugin.Tachie.ITachieSource
+  METHOD	internal	CreateCharacterParameter(System.Type type) : YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter
+  METHOD	internal	CreateItemParameter(System.Type type) : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	internal	CreateFaceParameter(System.Type type) : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	internal	get_Plugins() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.ITachiePlugin>
+  METHOD	internal	HasScriptFile(System.Type type) : Boolean
+  METHOD	internal	CreateScriptFile(System.Type type, String scriptDirectoryPath) : Void
+  METHOD	private	.cctor() : Void
+  PROP	Plugins
+
+# [YukkuriMovieMaker.dll] EffectedTimelineSource (private)
+base: System.Object
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, YukkuriMovieMaker.Player.Video.TimelineSource timelineSource) : Void
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Effects.IVideoEffect> effects) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	private	System.IDisposable.Dispose() : Void
+  PROP	Output
+
+# [YukkuriMovieMaker.dll] ShowOnlyExistsTachieFaceParameterConverter (public)
+base: System.Object
+  METHOD	public	Convert(Object value, System.Type targetType, Object parameter, System.Globalization.CultureInfo culture) : Object
+  METHOD	public	ConvertBack(Object value, System.Type targetType, Object parameter, System.Globalization.CultureInfo culture) : Object
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.dll] <<MainViewModel_PropertyChanged>b__1>d (private)
+base: System.ValueType
+  METHOD	private	MoveNext() : Void
+  METHOD	private	SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine) : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.ViewModels.IMainViewModel (public)
+base: 
+  METHOD	public	get_Index() : Int32
+  PROP	Index
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.AudioFileSourceFactory (public)
+base: System.Object
+  METHOD	public	Create(String filePath, Int32 audioTrackIndex) : YukkuriMovieMaker.Plugin.FileSource.IAudioFileSource
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.ImageFileSourceFactory (public)
+base: System.Object
+  METHOD	public	Create(YukkuriMovieMaker.Commons.IGraphicsDevices devices, String filepath) : YukkuriMovieMaker.Plugin.IImageFileSource
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.VideoFileSourceFactory (public)
+base: System.Object
+  METHOD	public	Create(YukkuriMovieMaker.Commons.IGraphicsDevices devices, String filePath) : YukkuriMovieMaker.Plugin.FileSource.IVideoFileSource
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter (public)
+base: 
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter (public)
+base: 
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter (public)
+base: 
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachiePlugin (public)
+base: 
+  METHOD	public	CreateCharacterParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter
+  METHOD	public	CreateItemParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	public	CreateFaceParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	public	CreateTachieSource(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices) : YukkuriMovieMaker.Plugin.Tachie.ITachieSource
+  METHOD	public	CreateExoItems(Int32 FPS, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription> tachieItemDescriptions, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription> faceItemDescriptions, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription> voiceDescriptions) : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ExoItem>
+  METHOD	public	get_HasScriptFile() : Boolean
+  METHOD	public	CreateScriptFile(String scriptDirectoryPath) : Void
+  PROP	HasScriptFile
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription (public)
+base: System.Object
+  METHOD	public	.ctor(Int32 KeyFrameIndex, YukkuriMovieMaker.Commons.ExoItem ExoItem, String CharacterName, YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter CharacterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter ItemParameter, System.Collections.Generic.IEnumerable`1<String> VideoFilters, String DrawingFilter) : Void
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_KeyFrameIndex() : Int32
+  METHOD	public	set_KeyFrameIndex(Int32 value) : Void
+  METHOD	public	get_ExoItem() : YukkuriMovieMaker.Commons.ExoItem
+  METHOD	public	set_ExoItem(YukkuriMovieMaker.Commons.ExoItem value) : Void
+  METHOD	public	get_CharacterName() : String
+  METHOD	public	set_CharacterName(String value) : Void
+  METHOD	public	get_CharacterParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter
+  METHOD	public	set_CharacterParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter value) : Void
+  METHOD	public	get_ItemParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	public	set_ItemParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter value) : Void
+  METHOD	public	get_VideoFilters() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	set_VideoFilters(System.Collections.Generic.IEnumerable`1<String> value) : Void
+  METHOD	public	get_DrawingFilter() : String
+  METHOD	public	set_DrawingFilter(String value) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription original) : Void
+  METHOD	public	Deconstruct(Int32& KeyFrameIndex, YukkuriMovieMaker.Commons.ExoItem& ExoItem, String& CharacterName, YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter& CharacterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter& ItemParameter, System.Collections.Generic.IEnumerable`1<String>& VideoFilters, String& DrawingFilter) : Void
+  PROP	EqualityContract
+  PROP	KeyFrameIndex
+  PROP	ExoItem
+  PROP	CharacterName
+  PROP	CharacterParameter
+  PROP	ItemParameter
+  PROP	VideoFilters
+  PROP	DrawingFilter
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription (public)
+base: System.Object
+  METHOD	public	.ctor(Int32 KeyFrameIndex, YukkuriMovieMaker.Commons.ExoItem ExoItem, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter FaceParameter, System.Collections.Generic.IEnumerable`1<String> FaceFilters) : Void
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_KeyFrameIndex() : Int32
+  METHOD	public	set_KeyFrameIndex(Int32 value) : Void
+  METHOD	public	get_ExoItem() : YukkuriMovieMaker.Commons.ExoItem
+  METHOD	public	set_ExoItem(YukkuriMovieMaker.Commons.ExoItem value) : Void
+  METHOD	public	get_FaceParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	public	set_FaceParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter value) : Void
+  METHOD	public	get_FaceFilters() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	set_FaceFilters(System.Collections.Generic.IEnumerable`1<String> value) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription original) : Void
+  METHOD	public	Deconstruct(Int32& KeyFrameIndex, YukkuriMovieMaker.Commons.ExoItem& ExoItem, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter& FaceParameter, System.Collections.Generic.IEnumerable`1<String>& FaceFilters) : Void
+  PROP	EqualityContract
+  PROP	KeyFrameIndex
+  PROP	ExoItem
+  PROP	FaceParameter
+  PROP	FaceFilters
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription (public)
+base: System.Object
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.ExoItem ExoItem, String VoiceFilePath) : Void
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_ExoItem() : YukkuriMovieMaker.Commons.ExoItem
+  METHOD	public	set_ExoItem(YukkuriMovieMaker.Commons.ExoItem value) : Void
+  METHOD	public	get_VoiceFilePath() : String
+  METHOD	public	set_VoiceFilePath(String value) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription left, YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription original) : Void
+  METHOD	public	Deconstruct(YukkuriMovieMaker.Commons.ExoItem& ExoItem, String& VoiceFilePath) : Void
+  PROP	EqualityContract
+  PROP	ExoItem
+  PROP	VoiceFilePath
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachieSource (public)
+base: 
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	Update(System.TimeSpan tachieTime, System.TimeSpan tachieLength, System.TimeSpan faceTime, System.TimeSpan faceLength, YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter characterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter itemParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter faceParameter, Double kuchipaku) : Void
+  PROP	Output
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.ITachieSource2 (public)
+base: 
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TachieSourceDescription desc) : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieCharacterParameterBase (public)
+base: YukkuriMovieMaker.UndoRedo.UndoRedoable
+  METHOD	protected	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieFaceParameterBase (public)
+base: YukkuriMovieMaker.Commons.Animatable
+  METHOD	protected	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.Tachie.TachieItemParameterBase (public)
+base: YukkuriMovieMaker.Commons.Animatable
+  METHOD	protected	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter (public)
+base: 
+  METHOD	public	get_SupportedStreams() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterSupportedStreams
+  METHOD	public	WriteAudio(Single[] samples) : Void
+  METHOD	public	WriteVideo(Byte[] frame) : Void
+  PROP	SupportedStreams
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter2 (public)
+base: 
+  METHOD	public	WriteVideo(Vortice.Direct2D1.ID2D1Bitmap1 frame) : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter3 (public)
+base: 
+  METHOD	public	get_IsGpuFrameSupported() : Boolean
+  PROP	IsGpuFrameSupported
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriterPlugin (public)
+base: 
+  METHOD	public	GetVideoConfigView(String projectName, YukkuriMovieMaker.Project.VideoInfo videoInfo, Int32 length) : System.Windows.UIElement
+  METHOD	public	get_OutputPathMode() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterOutputPath
+  METHOD	public	GetFileExtention() : String
+  METHOD	public	NeedDownloadResources() : Boolean
+  METHOD	public	DownloadResources(YukkuriMovieMaker.Commons.ProgressMessage progress, System.Threading.CancellationToken token) : System.Threading.Tasks.Task
+  METHOD	public	CreateVideoFileWriter(String path, YukkuriMovieMaker.Project.VideoInfo videoInfo) : YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter
+  PROP	OutputPathMode
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterSupportedStreams (public)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterOutputPath (public)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.ITimelineSource (public)
+base: 
+  METHOD	public	Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.TachieFaceDescription (public)
+base: System.Object
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_ItemPosition() : YukkuriMovieMaker.Player.Video.FrameTime
+  METHOD	public	set_ItemPosition(YukkuriMovieMaker.Player.Video.FrameTime value) : Void
+  METHOD	public	get_ItemDuration() : YukkuriMovieMaker.Player.Video.FrameTime
+  METHOD	public	set_ItemDuration(YukkuriMovieMaker.Player.Video.FrameTime value) : Void
+  METHOD	public	get_Layer() : Int32
+  METHOD	public	set_Layer(Int32 value) : Void
+  METHOD	public	get_FaceParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	public	set_FaceParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Player.Video.FrameTime itemPosition, YukkuriMovieMaker.Player.Video.FrameTime itemDuration, Int32 layer, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter faceParameter) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Player.Video.TachieFaceDescription left, YukkuriMovieMaker.Player.Video.TachieFaceDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Player.Video.TachieFaceDescription left, YukkuriMovieMaker.Player.Video.TachieFaceDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Player.Video.TachieFaceDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Player.Video.TachieFaceDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Player.Video.TachieFaceDescription original) : Void
+  PROP	EqualityContract
+  PROP	ItemPosition
+  PROP	ItemDuration
+  PROP	Layer
+  PROP	FaceParameter
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.TachieSourceDescription (public)
+base: YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_Tachie() : YukkuriMovieMaker.Player.Video.TachieDescription
+  METHOD	public	set_Tachie(YukkuriMovieMaker.Player.Video.TachieDescription value) : Void
+  METHOD	public	get_VoiceVolume() : Double
+  METHOD	public	set_VoiceVolume(Double value) : Void
+  METHOD	public	get_MouthShape() : YukkuriMovieMaker.Plugin.Voice.MouthShape
+  METHOD	public	set_MouthShape(YukkuriMovieMaker.Plugin.Voice.MouthShape value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineSourceDescription, YukkuriMovieMaker.Player.Video.TachieDescription tachieDescription, Double voiceVolume, YukkuriMovieMaker.Plugin.Voice.MouthShape mouthShape) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Player.Video.TachieSourceDescription left, YukkuriMovieMaker.Player.Video.TachieSourceDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Player.Video.TachieSourceDescription left, YukkuriMovieMaker.Player.Video.TachieSourceDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription other) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Player.Video.TachieSourceDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Player.Video.TachieSourceDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Player.Video.TachieSourceDescription original) : Void
+  PROP	EqualityContract
+  PROP	Tachie
+  PROP	VoiceVolume
+  PROP	MouthShape
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.TachieDescription (public)
+base: System.Object
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_CharacterParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter
+  METHOD	public	set_CharacterParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter value) : Void
+  METHOD	public	get_ItemParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	public	set_ItemParameter(YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter value) : Void
+  METHOD	public	get_Faces() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Video.TachieFaceDescription>
+  METHOD	public	set_Faces(System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Video.TachieFaceDescription> value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter characterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter itemParameter, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Player.Video.TachieFaceDescription> faces) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Player.Video.TachieDescription left, YukkuriMovieMaker.Player.Video.TachieDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Player.Video.TachieDescription left, YukkuriMovieMaker.Player.Video.TachieDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Player.Video.TachieDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Player.Video.TachieDescription
+  METHOD	protected	.ctor(YukkuriMovieMaker.Player.Video.TachieDescription original) : Void
+  PROP	EqualityContract
+  PROP	CharacterParameter
+  PROP	ItemParameter
+  PROP	Faces
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.TimelineSourceDescription (public)
+base: System.Object
+  METHOD	public	.ctor(System.Drawing.Size ScreenSize, YukkuriMovieMaker.Player.Video.FrameTime TimelinePosition, YukkuriMovieMaker.Player.Video.FrameTime TimelineDuration, Int32 FPS, YukkuriMovieMaker.Player.Video.TimelineSourceUsage Usage, System.Guid SceneId, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ISceneInfo> Scenes) : Void
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_ScreenSize() : System.Drawing.Size
+  METHOD	public	set_ScreenSize(System.Drawing.Size value) : Void
+  METHOD	public	get_TimelinePosition() : YukkuriMovieMaker.Player.Video.FrameTime
+  METHOD	public	set_TimelinePosition(YukkuriMovieMaker.Player.Video.FrameTime value) : Void
+  METHOD	public	get_TimelineDuration() : YukkuriMovieMaker.Player.Video.FrameTime
+  METHOD	public	set_TimelineDuration(YukkuriMovieMaker.Player.Video.FrameTime value) : Void
+  METHOD	public	get_FPS() : Int32
+  METHOD	public	set_FPS(Int32 value) : Void
+  METHOD	public	get_Usage() : YukkuriMovieMaker.Player.Video.TimelineSourceUsage
+  METHOD	public	set_Usage(YukkuriMovieMaker.Player.Video.TimelineSourceUsage value) : Void
+  METHOD	public	get_SceneId() : System.Guid
+  METHOD	public	set_SceneId(System.Guid value) : Void
+  METHOD	public	get_Scenes() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ISceneInfo>
+  METHOD	public	set_Scenes(System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ISceneInfo> value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Player.Video.TimelineSourceDescription timelineSourceDescription) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Player.Video.TimelineSourceDescription left, YukkuriMovieMaker.Player.Video.TimelineSourceDescription right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Player.Video.TimelineSourceDescription left, YukkuriMovieMaker.Player.Video.TimelineSourceDescription right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Player.Video.TimelineSourceDescription other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Player.Video.TimelineSourceDescription
+  METHOD	public	Deconstruct(System.Drawing.Size& ScreenSize, YukkuriMovieMaker.Player.Video.FrameTime& TimelinePosition, YukkuriMovieMaker.Player.Video.FrameTime& TimelineDuration, Int32& FPS, YukkuriMovieMaker.Player.Video.TimelineSourceUsage& Usage, System.Guid& SceneId, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ISceneInfo>& Scenes) : Void
+  PROP	EqualityContract
+  PROP	ScreenSize
+  PROP	TimelinePosition
+  PROP	TimelineDuration
+  PROP	FPS
+  PROP	Usage
+  PROP	SceneId
+  PROP	Scenes
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Player.Video.TimelineSourceUsage (public)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Commons.IPropertyEditorForTachieParameterAttribute (public)
+base: 
+  METHOD	public	set_CharacterParameter(Object value) : Void
+  METHOD	public	get_CharacterParameter() : Object
+  PROP	CharacterParameter
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Commons.ITimelineSourceAndDevices (public)
+base: 
+  METHOD	public	get_Devices() : YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext
+  METHOD	public	RenderD2D1Bitmap() : Vortice.Direct2D1.ID2D1Bitmap1
+  METHOD	public	RenderBitmapMemoryStream() : System.IO.MemoryStream
+  METHOD	public	RenderBitmapSource() : System.Windows.Media.Imaging.BitmapSource
+  PROP	Devices
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Commons.PropertyEditorForTachieParameterAttribute (public)
+base: YukkuriMovieMaker.Commons.PropertyEditorAttribute
+  METHOD	public	get_CharacterParameter() : Object
+  METHOD	public	set_CharacterParameter(Object value) : Void
+  METHOD	protected	.ctor() : Void
+  PROP	CharacterParameter
+
+# [YukkuriMovieMaker.Plugin.dll] YukkuriMovieMaker.Commons.SafeTransform3DHelper (public)
+base: System.Object
+  METHOD	public	Apply(Vortice.Direct2D1.ID2D1DeviceContext deviceContext, Vortice.Direct2D1.Effects.Crop cropEffect, Vortice.Direct2D1.ID2D1Image renderOutput) : Void
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.CompressorRatioMode (public)
+base: System.Enum
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.CompressorSettings (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Version() : Int32
+  METHOD	public	set_Version(Int32 value) : Void
+  METHOD	public	get_Threshold() : Single
+  METHOD	public	set_Threshold(Single value) : Void
+  METHOD	public	get_RatioMode() : YukkuriMovieMaker.VideoFileWriter.CompressorRatioMode
+  METHOD	public	set_RatioMode(YukkuriMovieMaker.VideoFileWriter.CompressorRatioMode value) : Void
+  METHOD	public	get_PeakLimit() : Single
+  METHOD	public	set_PeakLimit(Single value) : Void
+  METHOD	public	get_Ratio() : Single
+  METHOD	public	set_Ratio(Single value) : Void
+  METHOD	public	get_Attack() : Single
+  METHOD	public	set_Attack(Single value) : Void
+  METHOD	public	get_Release() : Single
+  METHOD	public	set_Release(Single value) : Void
+  METHOD	public	get_IsLookAheadEnabled() : Boolean
+  METHOD	public	set_IsLookAheadEnabled(Boolean value) : Void
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Version
+  PROP	Threshold
+  PROP	RatioMode
+  PROP	PeakLimit
+  PROP	Ratio
+  PROP	Attack
+  PROP	Release
+  PROP	IsLookAheadEnabled
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.LoudnessFixMode (public)
+base: System.Enum
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.LoudnessNormalizationSettings (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Version() : Int32
+  METHOD	public	set_Version(Int32 value) : Void
+  METHOD	public	get_Target() : Single
+  METHOD	public	set_Target(Single value) : Void
+  METHOD	public	get_Mode() : YukkuriMovieMaker.VideoFileWriter.LoudnessFixMode
+  METHOD	public	set_Mode(YukkuriMovieMaker.VideoFileWriter.LoudnessFixMode value) : Void
+  METHOD	public	.ctor() : Void
+  PROP	Version
+  PROP	Target
+  PROP	Mode
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.ResourceDirectorySettingsViewProvider (public)
+base: TypeSpec
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.VideoFileWriterSettings (public)
+base: TypeSpec
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	set_Plugin(String value) : Void
+  METHOD	public	get_Plugin() : String
+  METHOD	public	set_IsCreateSub(Boolean value) : Void
+  METHOD	public	get_IsCreateSub() : Boolean
+  METHOD	public	get_IsIncludeCharacterNameInSubtitles() : Boolean
+  METHOD	public	set_IsIncludeCharacterNameInSubtitles(Boolean value) : Void
+  METHOD	public	set_IsCreateVoiceList(Boolean value) : Void
+  METHOD	public	get_IsCreateVoiceList() : Boolean
+  METHOD	public	get_IsCreateTimelineResourceList() : Boolean
+  METHOD	public	set_IsCreateTimelineResourceList(Boolean value) : Void
+  METHOD	public	get_IsCreateContentIdList() : Boolean
+  METHOD	public	set_IsCreateContentIdList(Boolean value) : Void
+  METHOD	public	set_EncodeFrom(Int32 value) : Void
+  METHOD	public	get_EncodeFrom() : Int32
+  METHOD	public	set_EncodeTo(Int32 value) : Void
+  METHOD	public	get_EncodeTo() : Int32
+  METHOD	public	get_LoudnessNormalization() : YukkuriMovieMaker.VideoFileWriter.LoudnessNormalizationSettings
+  METHOD	public	get_Compressor() : YukkuriMovieMaker.VideoFileWriter.CompressorSettings
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+  PROP	Plugin
+  PROP	IsCreateSub
+  PROP	IsIncludeCharacterNameInSubtitles
+  PROP	IsCreateVoiceList
+  PROP	IsCreateTimelineResourceList
+  PROP	IsCreateContentIdList
+  PROP	EncodeFrom
+  PROP	EncodeTo
+  PROP	LoudnessNormalization
+  PROP	Compressor
+
+# [YukkuriMovieMaker.Settings.dll] YukkuriMovieMaker.VideoFileWriter.YMMSettingsViewProvider (public)
+base: TypeSpec
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriter (internal)
+base: System.Object
+  METHOD	public	get_SupportedStreams() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterSupportedStreams
+  METHOD	public	get_IsGpuFrameSupported() : Boolean
+  METHOD	public	.ctor(String file, YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterSettings settings) : Void
+  METHOD	public	WriteAudio(Single[] samples) : Void
+  METHOD	public	WriteVideo(Vortice.Direct2D1.ID2D1Bitmap1 frame) : Void
+  METHOD	private	ThrowIfVideoWriterFaulted() : Void
+  METHOD	private	IsYuvCodec(String codec) : Boolean
+  METHOD	private	ReadbackToBuffer(Vortice.Direct2D1.ID2D1Bitmap1 frame, Byte[] target) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	private	<.ctor>b__23_0(Object s, System.Diagnostics.DataReceivedEventArgs e) : Void
+  METHOD	private	<.ctor>b__23_2(Object s, System.Diagnostics.DataReceivedEventArgs e) : Void
+  METHOD	private	<.ctor>b__23_3() : Void
+  METHOD	private	<.ctor>b__23_1(Object s, System.Diagnostics.DataReceivedEventArgs e) : Void
+  PROP	SupportedStreams
+  PROP	IsGpuFrameSupported
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterConfigView (public)
+base: System.Windows.Controls.UserControl
+  METHOD	public	.ctor() : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterConfigViewModel (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	set_VideoBitRateMode(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateMode value) : Void
+  METHOD	public	get_VideoBitRateMode() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateMode
+  METHOD	public	set_VideoBitRateControlMode(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateControlMode value) : Void
+  METHOD	public	get_VideoBitRateControlMode() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateControlMode
+  METHOD	public	set_VideoBitRate(Int32 value) : Void
+  METHOD	public	get_VideoBitRate() : Int32
+  METHOD	public	set_VideoQuality(Int32 value) : Void
+  METHOD	public	get_VideoQuality() : Int32
+  METHOD	public	set_AudioBitRate(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.AudioBitRate value) : Void
+  METHOD	public	get_AudioBitRate() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.AudioBitRate
+  METHOD	public	set_IsHardwareEncoderEnabled(Boolean value) : Void
+  METHOD	public	get_IsHardwareEncoderEnabled() : Boolean
+  METHOD	public	set_VideoOptions(String value) : Void
+  METHOD	public	get_VideoOptions() : String
+  METHOD	public	set_AudioOptions(String value) : Void
+  METHOD	public	get_AudioOptions() : String
+  METHOD	public	get_VideoPreview() : String
+  METHOD	public	get_AudioPreview() : String
+  METHOD	public	get_Presets() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset>
+  METHOD	public	get_CurrentPreset() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset
+  METHOD	public	set_CurrentPreset(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset value) : Void
+  METHOD	public	get_OpenDllDirctory() : System.Windows.Input.ICommand
+  METHOD	public	get_SavePreset() : System.Windows.Input.ICommand
+  METHOD	public	get_DeletePreset() : System.Windows.Input.ICommand
+  METHOD	public	get_ModalViewModel() : System.ComponentModel.INotifyPropertyChanged
+  METHOD	public	set_ModalViewModel(System.ComponentModel.INotifyPropertyChanged value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	FFmpegVideoFileWriterConfigViewModel_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	UpdateCurrentPreset() : Void
+  METHOD	private	UpdateVideoBitRate() : Void
+  METHOD	private	<.ctor>b__48_3(Object _) : Void
+  METHOD	private	<.ctor>b__48_10(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset x) : Boolean
+  METHOD	private	<.ctor>b__48_5(Object _) : Void
+  PROP	VideoBitRateMode
+  PROP	VideoBitRateControlMode
+  PROP	VideoBitRate
+  PROP	VideoQuality
+  PROP	AudioBitRate
+  PROP	IsHardwareEncoderEnabled
+  PROP	VideoOptions
+  PROP	AudioOptions
+  PROP	VideoPreview
+  PROP	AudioPreview
+  PROP	Presets
+  PROP	CurrentPreset
+  PROP	OpenDllDirctory
+  PROP	SavePreset
+  PROP	DeletePreset
+  PROP	ModalViewModel
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPlugin (public)
+base: System.Object
+  METHOD	public	get_Name() : String
+  METHOD	public	get_OutputPathMode() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterOutputPath
+  METHOD	public	CreateVideoFileWriter(String file, YukkuriMovieMaker.Project.VideoInfo videoInfo) : YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter
+  METHOD	public	NeedDownloadResources() : Boolean
+  METHOD	public	DownloadResources(YukkuriMovieMaker.Commons.ProgressMessage progress, System.Threading.CancellationToken token) : System.Threading.Tasks.Task
+  METHOD	public	GetFFmpegExePath() : String
+  METHOD	public	GetFFmpegDirectory() : String
+  METHOD	public	GetFFmpegDllDirectory() : String
+  METHOD	public	GetFileExtention() : String
+  METHOD	public	GetVideoConfigView(String projectName, YukkuriMovieMaker.Project.VideoInfo videoInfo, Int32 length) : System.Windows.UIElement
+  METHOD	public	.ctor() : Void
+  PROP	Name
+  PROP	OutputPathMode
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Name() : String
+  METHOD	public	set_Name(String value) : Void
+  METHOD	public	get_VideoOptions() : String
+  METHOD	public	set_VideoOptions(String value) : Void
+  METHOD	public	get_AudioOptions() : String
+  METHOD	public	set_AudioOptions(String value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(String name, String videoOptions, String audioOptions) : Void
+  METHOD	public	.ctor(String name, YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterSettings settings) : Void
+  METHOD	public	ApplyTo(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterSettings settings) : Void
+  METHOD	public	PresetEquals(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterSettings settings) : Boolean
+  METHOD	public	PresetEquals(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset preset) : Boolean
+  PROP	Name
+  PROP	VideoOptions
+  PROP	AudioOptions
+
+# [YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll] YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterSettings (public)
+base: TypeSpec
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	set_Width(Int32 value) : Void
+  METHOD	public	get_Width() : Int32
+  METHOD	public	set_Height(Int32 value) : Void
+  METHOD	public	get_Height() : Int32
+  METHOD	public	set_FPS(Int32 value) : Void
+  METHOD	public	get_FPS() : Int32
+  METHOD	public	set_Hz(Int32 value) : Void
+  METHOD	public	get_Hz() : Int32
+  METHOD	public	set_Length(Int32 value) : Void
+  METHOD	public	get_Length() : Int32
+  METHOD	public	set_VideoBitRateMode(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateMode value) : Void
+  METHOD	public	get_VideoBitRateMode() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateMode
+  METHOD	public	set_VideoBitRateControlMode(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateControlMode value) : Void
+  METHOD	public	get_VideoBitRateControlMode() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.VideoBitRateControlMode
+  METHOD	public	set_VideoBitRate(Int32 value) : Void
+  METHOD	public	get_VideoBitRate() : Int32
+  METHOD	public	set_VideoQuality(Int32 value) : Void
+  METHOD	public	get_VideoQuality() : Int32
+  METHOD	public	set_AudioBitRate(YukkuriMovieMaker.Plugin.FileSource.FFmpeg.AudioBitRate value) : Void
+  METHOD	public	get_AudioBitRate() : YukkuriMovieMaker.Plugin.FileSource.FFmpeg.AudioBitRate
+  METHOD	public	get_VideoOptions() : String
+  METHOD	public	set_VideoOptions(String value) : Void
+  METHOD	public	get_AudioOptions() : String
+  METHOD	public	set_AudioOptions(String value) : Void
+  METHOD	public	get_IsHardwareEncoderEnabled() : Boolean
+  METHOD	public	set_IsHardwareEncoderEnabled(Boolean value) : Void
+  METHOD	public	get_PresetVersion() : Int32
+  METHOD	public	set_PresetVersion(Int32 value) : Void
+  METHOD	public	get_Presets() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset>
+  METHOD	public	set_Presets(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileWriterPreset> value) : Void
+  METHOD	public	get_VideoArgs() : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	public	get_AudioArgs() : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	public	get_VideoArgsString() : String
+  METHOD	public	get_ResolvedVideoArgsString() : String
+  METHOD	public	get_AudioArgsString() : String
+  METHOD	private	CreateAudioArgsDictionary() : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	private	ArgsDictionaryToString(System.Collections.Generic.Dictionary`2<String, String> dic) : String
+  METHOD	private	CreateVideoArgsDictionary() : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	private	OptionsToDictionary(System.Collections.Generic.Dictionary`2<String, String> dic, String args, String type) : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	private	NormalizeArgsDictionary(System.Collections.Generic.Dictionary`2<String, String> dic, String type) : System.Collections.Generic.Dictionary`2<String, String>
+  METHOD	private	NormalizeArgKey(String key, String type) : String
+  METHOD	private	NormalizeArgValue(String key, String value) : String
+  METHOD	private	NormalizeKbString(String value) : String
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+  PROP	Width
+  PROP	Height
+  PROP	FPS
+  PROP	Hz
+  PROP	Length
+  PROP	VideoBitRateMode
+  PROP	VideoBitRateControlMode
+  PROP	VideoBitRate
+  PROP	VideoQuality
+  PROP	AudioBitRate
+  PROP	VideoOptions
+  PROP	AudioOptions
+  PROP	IsHardwareEncoderEnabled
+  PROP	PresetVersion
+  PROP	Presets
+  PROP	VideoArgs
+  PROP	AudioArgs
+  PROP	VideoArgsString
+  PROP	ResolvedVideoArgsString
+  PROP	AudioArgsString
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriter (internal)
+base: System.Object
+  METHOD	public	get_SupportedStreams() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterSupportedStreams
+  METHOD	public	get_IsGpuFrameSupported() : Boolean
+  METHOD	public	.ctor(String path, YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings) : Void
+  METHOD	private	Open() : Void
+  METHOD	private	CreateSinkWriterAttribute(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings, YukkuriMovieMaker.Commons.GraphicsDevices devices) : Vortice.MediaFoundation.IMFAttributes
+  METHOD	private	CreateVideoStream(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings, Vortice.MediaFoundation.IMFSinkWriter writer) : Int32
+  METHOD	private	CreateAudioStream(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings, Vortice.MediaFoundation.IMFSinkWriter writer) : Int32
+  METHOD	private	CreateAudioStreamFFmpeg(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings, Vortice.MediaFoundation.IMFSinkWriter writer) : Int32
+  METHOD	public	WriteAudio(Single[] samples) : Void
+  METHOD	private	WriteAudioFFmpeg(Single[] samples) : Void
+  METHOD	private	ThrowIfFFmpegAudioWriterTaskFaulted() : Void
+  METHOD	private	GetFFmpegErrorTail() : String
+  METHOD	private	CreateFFmpegUnexpectedExitException(System.IO.IOException e) : System.IO.IOException
+  METHOD	private	WriteAudioMediaFoundation(Single[] samples) : Void
+  METHOD	private	SamplePositionToTime(Int64 samplePosition) : Int64
+  METHOD	public	WriteVideo(Vortice.Direct2D1.ID2D1Bitmap1 frame) : Void
+  METHOD	private	WriteVideoCpuReadback(Vortice.Direct2D1.ID2D1Bitmap1 frame) : Void
+  METHOD	private	WriteVideoGpuDirect(Vortice.Direct2D1.ID2D1Bitmap1 gpuFrame, Boolean& committed) : Void
+  METHOD	private	WriteVideoCpuFromGpuFrame(Vortice.Direct2D1.ID2D1Bitmap1 gpuFrame) : Void
+  METHOD	private	Release() : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	private	<.ctor>b__27_0() : System.Threading.Tasks.Task
+  METHOD	private	<.ctor>b__27_1() : System.Threading.Tasks.Task
+  METHOD	private	<WriteAudioFFmpeg>b__36_0(System.Span`1<Single> buffer) : Void
+  PROP	SupportedStreams
+  PROP	IsGpuFrameSupported
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterConfigView (public)
+base: System.Windows.Controls.UserControl
+  METHOD	public	.ctor() : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterConfigViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	set_VideoBitRateMode(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateMode value) : Void
+  METHOD	public	get_VideoBitRateMode() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateMode
+  METHOD	public	set_VideoBitRateControlMode(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateControlMode value) : Void
+  METHOD	public	get_VideoBitRateControlMode() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateControlMode
+  METHOD	public	set_VideoBitRate(Int32 value) : Void
+  METHOD	public	get_VideoBitRate() : Int32
+  METHOD	public	set_VideoQuality(Int32 value) : Void
+  METHOD	public	get_VideoQuality() : Int32
+  METHOD	public	set_AudioBitRate(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AudioBitRate value) : Void
+  METHOD	public	get_AudioBitRate() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AudioBitRate
+  METHOD	public	set_H264Profile(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Profile value) : Void
+  METHOD	public	get_H264Profile() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Profile
+  METHOD	public	set_H264Level(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Level value) : Void
+  METHOD	public	get_H264Level() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Level
+  METHOD	public	set_AACProfile(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AACProfile value) : Void
+  METHOD	public	get_AACProfile() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AACProfile
+  METHOD	public	set_IsFFmpegAACEncoderEnabled(Boolean value) : Void
+  METHOD	public	get_IsFFmpegAACEncoderEnabled() : Boolean
+  METHOD	public	set_EncodeSpeed(Int32 value) : Void
+  METHOD	public	get_EncodeSpeed() : Int32
+  METHOD	public	set_NumberOfThread(Int32 value) : Void
+  METHOD	public	get_NumberOfThread() : Int32
+  METHOD	public	set_MinQP(Int32 value) : Void
+  METHOD	public	get_MinQP() : Int32
+  METHOD	public	set_MaxQP(Int32 value) : Void
+  METHOD	public	get_MaxQP() : Int32
+  METHOD	public	set_GOPSize(Int32 value) : Void
+  METHOD	public	get_GOPSize() : Int32
+  METHOD	public	set_BFrameCount(Int32 value) : Void
+  METHOD	public	get_BFrameCount() : Int32
+  METHOD	public	set_IsHardwareAcceleration(Boolean value) : Void
+  METHOD	public	get_IsHardwareAcceleration() : Boolean
+  METHOD	public	set_IsCABACEnabled(Boolean value) : Void
+  METHOD	public	get_IsCABACEnabled() : Boolean
+  METHOD	public	set_H264ProfileWarning(String value) : Void
+  METHOD	public	get_H264ProfileWarning() : String
+  METHOD	public	set_NoiseWarning(String value) : Void
+  METHOD	public	get_NoiseWarning() : String
+  METHOD	public	set_HardwareAccelerationWarning(String value) : Void
+  METHOD	public	get_HardwareAccelerationWarning() : String
+  METHOD	public	get_ConfigWarning() : String
+  METHOD	public	.ctor() : Void
+  METHOD	private	MFVideoFileWriterConfigViewModel_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	UpdateConfigWarning() : Void
+  METHOD	private	UpdateVideoBitRate() : Void
+  PROP	VideoBitRateMode
+  PROP	VideoBitRateControlMode
+  PROP	VideoBitRate
+  PROP	VideoQuality
+  PROP	AudioBitRate
+  PROP	H264Profile
+  PROP	H264Level
+  PROP	AACProfile
+  PROP	IsFFmpegAACEncoderEnabled
+  PROP	EncodeSpeed
+  PROP	NumberOfThread
+  PROP	MinQP
+  PROP	MaxQP
+  PROP	GOPSize
+  PROP	BFrameCount
+  PROP	IsHardwareAcceleration
+  PROP	IsCABACEnabled
+  PROP	H264ProfileWarning
+  PROP	NoiseWarning
+  PROP	HardwareAccelerationWarning
+  PROP	ConfigWarning
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterPlugin (internal)
+base: System.Object
+  METHOD	public	get_Name() : String
+  METHOD	public	get_OutputPathMode() : YukkuriMovieMaker.Plugin.FileWriter.VideoFileWriterOutputPath
+  METHOD	public	CreateVideoFileWriter(String file, YukkuriMovieMaker.Project.VideoInfo videoInfo) : YukkuriMovieMaker.Plugin.FileWriter.IVideoFileWriter
+  METHOD	public	NeedDownloadResources() : Boolean
+  METHOD	public	DownloadResources(YukkuriMovieMaker.Commons.ProgressMessage progress, System.Threading.CancellationToken token) : System.Threading.Tasks.Task
+  METHOD	public	GetFileExtention() : String
+  METHOD	public	GetVideoConfigView(String projectName, YukkuriMovieMaker.Project.VideoInfo videoInfo, Int32 length) : System.Windows.UIElement
+  METHOD	public	.ctor() : Void
+  PROP	Name
+  PROP	OutputPathMode
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings (internal)
+base: TypeSpec
+  METHOD	public	set_VideoBitRateMode(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateMode value) : Void
+  METHOD	public	get_VideoBitRateMode() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateMode
+  METHOD	public	set_VideoBitRateControlMode(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateControlMode value) : Void
+  METHOD	public	get_VideoBitRateControlMode() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.VideoBitRateControlMode
+  METHOD	public	set_VideoBitRate(Int32 value) : Void
+  METHOD	public	get_VideoBitRate() : Int32
+  METHOD	public	set_VideoQuality(Int32 value) : Void
+  METHOD	public	get_VideoQuality() : Int32
+  METHOD	public	set_AudioBitRate(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AudioBitRate value) : Void
+  METHOD	public	get_AudioBitRate() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AudioBitRate
+  METHOD	public	set_IsAudioCrapFixEnabled(Boolean value) : Void
+  METHOD	public	get_IsAudioCrapFixEnabled() : Boolean
+  METHOD	public	set_H264Profile(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Profile value) : Void
+  METHOD	public	get_H264Profile() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Profile
+  METHOD	public	set_H264Level(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Level value) : Void
+  METHOD	public	get_H264Level() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.H264Level
+  METHOD	public	set_AACProfile(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AACProfile value) : Void
+  METHOD	public	get_AACProfile() : YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.AACProfile
+  METHOD	public	set_IsFFmpegAACEncoderEnabled(Boolean value) : Void
+  METHOD	public	get_IsFFmpegAACEncoderEnabled() : Boolean
+  METHOD	public	set_EncodeSpeed(Int32 value) : Void
+  METHOD	public	get_EncodeSpeed() : Int32
+  METHOD	public	set_NumberOfThreads(Int32 value) : Void
+  METHOD	public	get_NumberOfThreads() : Int32
+  METHOD	public	set_GOPSize(Int32 value) : Void
+  METHOD	public	get_GOPSize() : Int32
+  METHOD	public	set_BFrameCount(Int32 value) : Void
+  METHOD	public	get_BFrameCount() : Int32
+  METHOD	public	set_MinQP(Int32 value) : Void
+  METHOD	public	get_MinQP() : Int32
+  METHOD	public	set_MaxQP(Int32 value) : Void
+  METHOD	public	get_MaxQP() : Int32
+  METHOD	public	set_IsHardwareAcceleration(Boolean value) : Void
+  METHOD	public	get_IsHardwareAcceleration() : Boolean
+  METHOD	public	set_IsCABACEnabled(Boolean value) : Void
+  METHOD	public	get_IsCABACEnabled() : Boolean
+  METHOD	public	set_Width(Int32 value) : Void
+  METHOD	public	get_Width() : Int32
+  METHOD	public	set_Height(Int32 value) : Void
+  METHOD	public	get_Height() : Int32
+  METHOD	public	set_FPS(Int32 value) : Void
+  METHOD	public	get_FPS() : Int32
+  METHOD	public	set_Hz(Int32 value) : Void
+  METHOD	public	get_Hz() : Int32
+  METHOD	public	set_Length(Int32 value) : Void
+  METHOD	public	get_Length() : Int32
+  METHOD	public	.ctor() : Void
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	Initialize() : Void
+  PROP	VideoBitRateMode
+  PROP	VideoBitRateControlMode
+  PROP	VideoBitRate
+  PROP	VideoQuality
+  PROP	AudioBitRate
+  PROP	IsAudioCrapFixEnabled
+  PROP	H264Profile
+  PROP	H264Level
+  PROP	AACProfile
+  PROP	IsFFmpegAACEncoderEnabled
+  PROP	EncodeSpeed
+  PROP	NumberOfThreads
+  PROP	GOPSize
+  PROP	BFrameCount
+  PROP	MinQP
+  PROP	MaxQP
+  PROP	IsHardwareAcceleration
+  PROP	IsCABACEnabled
+  PROP	Width
+  PROP	Height
+  PROP	FPS
+  PROP	Hz
+  PROP	Length
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+
+# [YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll] YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterValidator (internal)
+base: System.Object
+  METHOD	private	get_MaxH264Level() : YukkuriMovieMaker.Commons.H264Level
+  METHOD	public	Validate(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings) : Void
+  METHOD	private	ValidateVideo(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings) : Void
+  METHOD	private	GetMacroBlocksPerFrame(Int32 width, Int32 height) : Int32
+  METHOD	private	ValidateAudio(YukkuriMovieMaker.Plugin.FileWriter.MediaFoundation.MFVideoFileWriterSettings settings) : Void
+  PROP	MaxH264Level
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.LayerEffects (internal)
+base: System.Object
+  METHOD	public	.ctor(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext) : Void
+  METHOD	public	get_OpacityEffect() : Vortice.Direct2D1.Effects.Opacity
+  METHOD	public	get_AlphaMaskEffect() : Vortice.Direct2D1.Effects.AlphaMask
+  METHOD	public	get_AffineTransform2DEffect() : Vortice.Direct2D1.Effects.AffineTransform2D
+  METHOD	public	get_FloodEffect() : Vortice.Direct2D1.Effects.Flood
+  METHOD	public	get_CompositeEffect() : Vortice.Direct2D1.Effects.Composite
+  METHOD	public	get_ClippingEffect() : Vortice.Direct2D1.Effects.AlphaMask
+  METHOD	public	get_ClippingOffsetEffect() : Vortice.Direct2D1.Effects.AffineTransform2D
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	OpacityEffect
+  PROP	AlphaMaskEffect
+  PROP	AffineTransform2DEffect
+  PROP	FloodEffect
+  PROP	CompositeEffect
+  PROP	ClippingEffect
+  PROP	ClippingOffsetEffect
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.LayerImageBuffer (public)
+base: System.Object
+  METHOD	public	get_X() : Int32
+  METHOD	public	get_Y() : Int32
+  METHOD	public	get_Width() : Int32
+  METHOD	public	get_Height() : Int32
+  METHOD	public	.ctor(PsdParser.LayerRecordAndImage layer) : Void
+  METHOD	public	ToBytes() : Byte[]
+  METHOD	public	ToD2DBitmap(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext) : Vortice.Direct2D1.ID2D1Bitmap
+  PROP	X
+  PROP	Y
+  PROP	Width
+  PROP	Height
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.LayerMaskBuffer (public)
+base: System.Object
+  METHOD	public	get_Width() : Int32
+  METHOD	public	get_Height() : Int32
+  METHOD	public	get_X() : Int32
+  METHOD	public	get_Y() : Int32
+  METHOD	private	.ctor(PsdParser.LayerRecordAndImage layer) : Void
+  METHOD	public	TryCreate(PsdParser.LayerRecordAndImage layer, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerMaskBuffer& buffer) : Boolean
+  METHOD	public	ToBytes() : Byte[]
+  METHOD	public	ToD2DBitmap(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext) : Vortice.Direct2D1.ID2D1Bitmap
+  PROP	Width
+  PROP	Height
+  PROP	X
+  PROP	Y
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources (internal)
+base: System.Object
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerEffects LayerEffects, Single Opacity) : Void
+  METHOD	protected	get_EqualityContract() : System.Type
+  METHOD	public	get_LayerEffects() : YukkuriMovieMaker.Plugin.FileSource.Psd.LayerEffects
+  METHOD	public	set_LayerEffects(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerEffects value) : Void
+  METHOD	public	get_Opacity() : Single
+  METHOD	public	set_Opacity(Single value) : Void
+  METHOD	public	ToString() : String
+  METHOD	protected	PrintMembers(System.Text.StringBuilder builder) : Boolean
+  METHOD	public	op_Inequality(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources left, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources right) : Boolean
+  METHOD	public	op_Equality(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources left, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources right) : Boolean
+  METHOD	public	GetHashCode() : Int32
+  METHOD	public	Equals(Object obj) : Boolean
+  METHOD	public	Equals(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources other) : Boolean
+  METHOD	public	<Clone>$() : YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources
+  METHOD	protected	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources original) : Void
+  METHOD	public	Deconstruct(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerEffects& LayerEffects, Single& Opacity) : Void
+  PROP	EqualityContract
+  PROP	LayerEffects
+  PROP	Opacity
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.MaskedLayerImageBuffer (public)
+base: System.Object
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.LayerImageBuffer image, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerMaskBuffer mask) : Void
+  METHOD	public	get_Width() : Int32
+  METHOD	public	get_Height() : Int32
+  METHOD	public	ToBytes() : Byte[]
+  PROP	Width
+  PROP	Height
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFileSourcePlugin (public)
+base: System.Object
+  METHOD	public	get_Name() : String
+  METHOD	public	CreateBitmap(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, String filePath) : Vortice.Direct2D1.ID2D1Bitmap
+  METHOD	public	CreateBitmap(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, String filePath, System.Collections.Generic.IEnumerable`1<String> activeLayers) : Vortice.Direct2D1.ID2D1Bitmap
+  METHOD	public	CreateBitmap(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, Int32 width, Int32 height) : Vortice.Direct2D1.ID2D1Bitmap
+  METHOD	private	DrawFolder(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext, Vortice.Direct2D1.ID2D1Bitmap target, YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources layerResources, Vortice.Direct2D1.ID2D1Bitmap clippingMaskBitmap, System.Numerics.Vector2 clippingMaskOffset) : System.ValueTuple`2<Vortice.Direct2D1.ID2D1Bitmap, System.Numerics.Vector2>
+  METHOD	private	DrawLayer(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext, Vortice.Direct2D1.ID2D1Bitmap target, YukkuriMovieMaker.Plugin.FileSource.Psd.PsdLayer layer, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources layerResources, Vortice.Direct2D1.ID2D1Bitmap clippingMaskBitmap, System.Numerics.Vector2 clippingMaskOffset) : System.ValueTuple`2<Vortice.Direct2D1.ID2D1Bitmap, System.Numerics.Vector2>
+  METHOD	private	Draw(Vortice.Direct2D1.ID2D1DeviceContext6 deviceContext, Vortice.Direct2D1.ID2D1Image image, System.Numerics.Vector2 vector, Vortice.Direct2D1.ID2D1Image opacityMask, System.Numerics.Vector2 maskOffset, Boolean isBlackMask, PsdParser.BlendMode blendMode, YukkuriMovieMaker.Plugin.FileSource.Psd.LayerResources layerResources, Vortice.Direct2D1.ID2D1Bitmap clippingMaskBitmap, System.Numerics.Vector2 clippingMaskOffset) : Void
+  METHOD	private	ClearCache(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, Boolean isParentEnabled) : Void
+  METHOD	public	.ctor() : Void
+  PROP	Name
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder (public)
+base: YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem
+  METHOD	public	get_Items() : System.Collections.Generic.List`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>
+  METHOD	public	.ctor(PsdParser.LayerRecordAndImage layerRecordAndImage, Int32 id) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	Parse(PsdParser.PsdFile psd) : YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder
+  METHOD	public	GetEnableItems() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	private	GetEnableItems(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder) : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	SetEnableItems(System.Collections.Generic.IEnumerable`1<String> ids) : Void
+  METHOD	private	SetEnableItems(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, System.Collections.Generic.IEnumerable`1<String> ids) : Void
+  METHOD	public	GetActiveLayers() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	private	GetActiveLayers(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder) : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	SetActiveLayers(System.Collections.Generic.IEnumerable`1<String> activeLayers) : Void
+  METHOD	private	SetActiveFolder(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, System.Collections.Generic.IEnumerable`1<String> activeLayers) : Boolean
+  METHOD	public	GetItemFrom(String id) : YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem
+  METHOD	private	GetItemFrom(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder folder, String id) : YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem
+  PROP	Items
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem (public)
+base: System.Object
+  METHOD	public	get_Name() : String
+  METHOD	public	get_Id() : String
+  METHOD	public	get_IsEnabled() : Boolean
+  METHOD	public	set_IsEnabled(Boolean value) : Void
+  METHOD	public	get_LayerRecordAndImage() : PsdParser.LayerRecordAndImage
+  METHOD	public	get_LayerImageBuffer() : YukkuriMovieMaker.Plugin.FileSource.Psd.LayerImageBuffer
+  METHOD	public	get_LayerMaskBuffer() : YukkuriMovieMaker.Plugin.FileSource.Psd.LayerMaskBuffer
+  METHOD	public	ClearCache() : Void
+  METHOD	public	.ctor(PsdParser.LayerRecordAndImage layerRecordAndImage, Int32 id) : Void
+  METHOD	public	.ctor(String name, Int32 id, Boolean isEnabled) : Void
+  PROP	Name
+  PROP	Id
+  PROP	IsEnabled
+  PROP	LayerRecordAndImage
+  PROP	LayerImageBuffer
+  PROP	LayerMaskBuffer
+
+# [YukkuriMovieMaker.Plugin.FileSource.Psd.dll] YukkuriMovieMaker.Plugin.FileSource.Psd.PsdLayer (public)
+base: YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem
+  METHOD	public	.ctor(PsdParser.LayerRecordAndImage layerRecordAndImage, Int32 id) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.AnimationMode (internal)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.FileSelectorForPsdTachieFile (internal)
+base: System.Windows.Controls.Grid
+  METHOD	public	add_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	remove_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	add_EndEdit(System.EventHandler value) : Void
+  METHOD	public	remove_EndEdit(System.EventHandler value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	Editor_EndEdit(Object sender, System.EventArgs e) : Void
+  METHOD	private	Editor_BeginEdit(Object sender, System.EventArgs e) : Void
+  METHOD	private	Button_Click(Object sender, System.Windows.RoutedEventArgs e) : Void
+  EVENT	BeginEdit
+  EVENT	EndEdit
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.FileSelectorForPsdTachieFileAttribute (internal)
+base: YukkuriMovieMaker.Controls.FileSelectorAttribute
+  METHOD	public	.ctor(YukkuriMovieMaker.Settings.FileGroupType group) : Void
+  METHOD	public	Create() : System.Windows.FrameworkElement
+  METHOD	public	SetBindings(System.Windows.FrameworkElement control, YukkuriMovieMaker.Commons.ItemProperty[] itemProperties) : Void
+  METHOD	public	ClearBindings(System.Windows.FrameworkElement control) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.InputDialog (public)
+base: System.Windows.Window
+  METHOD	public	get_Result() : String
+  METHOD	public	set_Result(String value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	Input_TextChanged(Object sender, System.Windows.Controls.TextChangedEventArgs e) : Void
+  METHOD	private	Button_Click(Object sender, System.Windows.RoutedEventArgs e) : Void
+  METHOD	private	Input_KeyDown(Object sender, System.Windows.Input.KeyEventArgs e) : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+  METHOD	private	.cctor() : Void
+  PROP	Result
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1 (public)
+base: 
+  METHOD	public	add_EnableChanged(System.EventHandler value) : Void
+  METHOD	public	remove_EnableChanged(System.EventHandler value) : Void
+  METHOD	public	get_Id() : String
+  METHOD	public	get_IsEnabled() : Boolean
+  METHOD	public	UpdateEnable(System.Collections.Generic.IEnumerable`1<String> enableLayers) : Void
+  METHOD	public	get_ToggleEnableCommand() : System.Windows.Input.ICommand
+  PROP	Id
+  PROP	IsEnabled
+  PROP	ToggleEnableCommand
+  EVENT	EnableChanged
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdTachieParameter (public)
+base: 
+  METHOD	public	get_FilePath() : String
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	get_EnableLayers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_EnableLayers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  PROP	FilePath
+  PROP	EnableLayers
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.MiddleClickTrigger (internal)
+base: TypeSpec
+  METHOD	protected	OnAttached() : Void
+  METHOD	protected	OnDetaching() : Void
+  METHOD	private	AssociatedObject_PreviewMouseDown(Object sender, System.Windows.Input.MouseButtonEventArgs e) : Void
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.MouthAnimationMode (internal)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdAnimationMode (internal)
+base: System.Enum
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation (public)
+base: System.Object
+  METHOD	public	get_Layers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_Layers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	get_Offset() : Double
+  METHOD	public	set_Offset(Double value) : Void
+  METHOD	public	get_Interval() : Double
+  METHOD	public	set_Interval(Double value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(System.Collections.Immutable.ImmutableList`1<String> layers, Double offset, Double interval) : Void
+  PROP	Layers
+  PROP	Offset
+  PROP	Interval
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Presets() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset>
+  METHOD	public	set_Presets(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset> value) : Void
+  METHOD	public	get_MouthAnimations() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation>
+  METHOD	public	set_MouthAnimations(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation> value) : Void
+  METHOD	public	get_MouthVowelAnimations() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation>
+  METHOD	public	set_MouthVowelAnimations(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation> value) : Void
+  METHOD	public	get_EyeAnimations() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation>
+  METHOD	public	set_EyeAnimations(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation> value) : Void
+  METHOD	private	GetJsonPath(String psdFilePath) : String
+  METHOD	public	LoadFromPsdFilePath(String filePath) : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings
+  METHOD	public	SaveFromPsdFilePath(String filePath) : Void
+  METHOD	public	GetActiveEyeAnimations(System.Collections.Generic.IEnumerable`1<String> activeLayers) : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation>
+  METHOD	public	GetActiveMouthAnimations(System.Collections.Generic.IEnumerable`1<String> activeLayers) : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation>
+  METHOD	public	GetActiveVowelMouthAnimations(System.Collections.Generic.IEnumerable`1<String> activeLayers) : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation>
+  METHOD	public	.ctor() : Void
+  METHOD	private	.cctor() : Void
+  PROP	Presets
+  PROP	MouthAnimations
+  PROP	MouthVowelAnimations
+  PROP	EyeAnimations
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettingsTool (internal)
+base: System.Object
+  METHOD	public	get_ViewModelType() : System.Type
+  METHOD	public	get_ViewType() : System.Type
+  METHOD	public	get_Name() : String
+  METHOD	public	.ctor() : Void
+  PROP	ViewModelType
+  PROP	ViewType
+  PROP	Name
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettingsView (public)
+base: System.Windows.Controls.UserControl
+  METHOD	public	.ctor() : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	internal	_CreateDelegate(System.Type delegateType, String handler) : System.Delegate
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettingsViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	add_CreateNewToolViewRequested(System.EventHandler`1<YukkuriMovieMaker.Plugin.CreateNewToolViewRequestedEventArgs> value) : Void
+  METHOD	public	remove_CreateNewToolViewRequested(System.EventHandler`1<YukkuriMovieMaker.Plugin.CreateNewToolViewRequestedEventArgs> value) : Void
+  METHOD	public	get_OpenFileCommand() : System.Windows.Input.ICommand
+  METHOD	public	get_ReloadFileCommand() : System.Windows.Input.ICommand
+  METHOD	public	get_FileName() : String
+  METHOD	public	get_RootViewModel() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel
+  METHOD	public	set_RootViewModel(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel value) : Void
+  METHOD	public	get_SelectedLayer() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_SelectedLayer(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_LayerAnimationEditorViewModel() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerAnimationEditorViewModel
+  METHOD	public	set_LayerAnimationEditorViewModel(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerAnimationEditorViewModel value) : Void
+  METHOD	public	get_Title() : String
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(String value) : Void
+  METHOD	public	OpenFile(String filePath) : Void
+  METHOD	public	SaveState() : YukkuriMovieMaker.Plugin.ToolState
+  METHOD	public	LoadState(YukkuriMovieMaker.Plugin.ToolState stateData) : Void
+  METHOD	private	<.ctor>b__30_1(Object _) : Void
+  METHOD	private	<.ctor>b__30_3(Object _) : Void
+  PROP	OpenFileCommand
+  PROP	ReloadFileCommand
+  PROP	FileName
+  PROP	RootViewModel
+  PROP	SelectedLayer
+  PROP	LayerAnimationEditorViewModel
+  PROP	Title
+  EVENT	CreateNewToolViewRequested
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettingsViewSettings (internal)
+base: TypeSpec
+  METHOD	public	get_Category() : YukkuriMovieMaker.Plugin.SettingsCategory
+  METHOD	public	get_Name() : String
+  METHOD	public	get_HasSettingView() : Boolean
+  METHOD	public	get_SettingView() : Object
+  METHOD	public	get_PartsListWidth() : Double
+  METHOD	public	set_PartsListWidth(Double value) : Void
+  METHOD	public	Initialize() : Void
+  METHOD	public	.ctor() : Void
+  PROP	Category
+  PROP	Name
+  PROP	HasSettingView
+  PROP	SettingView
+  PROP	PartsListWidth
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel (public)
+base: TypeSpec
+  METHOD	public	get_IsOpened() : Boolean
+  METHOD	public	set_IsOpened(Boolean value) : Void
+  METHOD	public	get_Items() : System.Collections.Generic.IReadOnlyCollection`1<YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>>
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder psdFolder, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings settings, YukkuriMovieMaker.Plugin.Tachie.Psd.ShiftLayerCommand shiftLayerCommand, YukkuriMovieMaker.Plugin.Tachie.Psd.SwitchLayerCommand switchLayerCommand) : Void
+  METHOD	public	UpdateEnable(System.Collections.Generic.IEnumerable`1<String> enableLayers) : Void
+  METHOD	internal	GetEnableItems() : System.Collections.Generic.IEnumerable`1<String>
+  PROP	IsOpened
+  PROP	Items
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdItemViewModel`1 (public)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_PsdItem() : !0
+  METHOD	public	add_EnableChanged(System.EventHandler value) : Void
+  METHOD	public	remove_EnableChanged(System.EventHandler value) : Void
+  METHOD	public	get_Id() : String
+  METHOD	public	get_IsEnabled() : Boolean
+  METHOD	public	set_IsEnabled(Boolean value) : Void
+  METHOD	public	get_Name() : String
+  METHOD	public	get_ToggleEnableCommand() : System.Windows.Input.ICommand
+  METHOD	public	get_ShiftLayerCommand() : YukkuriMovieMaker.Plugin.Tachie.Psd.ShiftLayerCommand
+  METHOD	public	get_SwitchLayerCommand() : YukkuriMovieMaker.Plugin.Tachie.Psd.SwitchLayerCommand
+  METHOD	public	.ctor(!0 psdItem, YukkuriMovieMaker.Plugin.Tachie.Psd.ShiftLayerCommand shiftLayerCommand, YukkuriMovieMaker.Plugin.Tachie.Psd.SwitchLayerCommand switchLayerCommand) : Void
+  METHOD	public	UpdateEnable(System.Collections.Generic.IEnumerable`1<String> enableLayers) : Void
+  METHOD	private	<.ctor>b__22_1(Object _) : Void
+  PROP	PsdItem
+  PROP	Id
+  PROP	IsEnabled
+  PROP	Name
+  PROP	ToggleEnableCommand
+  PROP	ShiftLayerCommand
+  PROP	SwitchLayerCommand
+  EVENT	EnableChanged
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerAnimationEditorViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Mode() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdAnimationMode
+  METHOD	public	set_Mode(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdAnimationMode value) : Void
+  METHOD	public	get_Start() : Double
+  METHOD	public	set_Start(Double value) : Void
+  METHOD	public	get_Interval() : Double
+  METHOD	public	set_Interval(Double value) : Void
+  METHOD	public	get_HasAnimation() : Boolean
+  METHOD	public	get_Layers() : System.Collections.ObjectModel.ObservableCollection`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel>
+  METHOD	public	get_MouthShapeA() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeA(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MouthShapeI() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeI(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MouthShapeU() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeU(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MouthShapeE() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeE(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MouthShapeO() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeO(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MouthShapeSilent() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_MouthShapeSilent(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_SelectedLayer() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	public	set_SelectedLayer(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel value) : Void
+  METHOD	public	get_MoveUpCommnd() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_MoveDownCommand() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_AddCommand() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_DeleteCommand() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_ChangeMouthShapeCommand() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	get_DeleteMouthShapeCommand() : YukkuriMovieMaker.Commons.ActionCommand
+  METHOD	public	.ctor(String psdFilePath, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings settings, YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder root, YukkuriMovieMaker.Plugin.FileSource.Psd.PsdLayer layer) : Void
+  METHOD	private	CreatePsdLayerViewModel(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder root, String a) : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel
+  METHOD	private	Save() : Void
+  METHOD	private	RaiseCanExecuteChanged() : Void
+  METHOD	private	<Save>b__68_0(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation x) : Boolean
+  METHOD	private	<Save>b__68_1(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation x) : Boolean
+  METHOD	private	<Save>b__68_2(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation x) : Boolean
+  PROP	Mode
+  PROP	Start
+  PROP	Interval
+  PROP	HasAnimation
+  PROP	Layers
+  PROP	MouthShapeA
+  PROP	MouthShapeI
+  PROP	MouthShapeU
+  PROP	MouthShapeE
+  PROP	MouthShapeO
+  PROP	MouthShapeSilent
+  PROP	SelectedLayer
+  PROP	MoveUpCommnd
+  PROP	MoveDownCommand
+  PROP	AddCommand
+  PROP	DeleteCommand
+  PROP	ChangeMouthShapeCommand
+  PROP	DeleteMouthShapeCommand
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerEditor (public)
+base: System.Windows.Controls.UserControl
+  METHOD	public	add_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	remove_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	add_EndEdit(System.EventHandler value) : Void
+  METHOD	public	remove_EndEdit(System.EventHandler value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	PsdLayerEditor_DataContextChanged(Object sender, System.Windows.DependencyPropertyChangedEventArgs e) : Void
+  METHOD	private	Vm_BeginEdit(Object sender, System.EventArgs e) : Void
+  METHOD	private	Vm_EndEdit(Object sender, System.EventArgs e) : Void
+  METHOD	private	TreeView_PreviewMouseWheel(Object sender, System.Windows.Input.MouseWheelEventArgs e) : Void
+  METHOD	private	TreeViewItem_RequestBringIntoView(Object sender, System.Windows.RequestBringIntoViewEventArgs e) : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+  METHOD	private	System.Windows.Markup.IStyleConnector.Connect(Int32 connectionId, Object target) : Void
+  EVENT	BeginEdit
+  EVENT	EndEdit
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerEditorAttribute (public)
+base: YukkuriMovieMaker.Commons.PropertyEditorAttribute
+  METHOD	public	get_CharacterParameter() : Object
+  METHOD	public	set_CharacterParameter(Object value) : Void
+  METHOD	public	Create() : System.Windows.FrameworkElement
+  METHOD	public	ClearBindings(System.Windows.FrameworkElement control) : Void
+  METHOD	public	SetBindings(System.Windows.FrameworkElement control, Object item, Object propertyOwner, System.Reflection.PropertyInfo propertyInfo) : Void
+  METHOD	public	.ctor() : Void
+  PROP	CharacterParameter
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerEditorViewModel (public)
+base: YukkuriMovieMaker.Commons.ValidatableBindable
+  METHOD	public	add_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	remove_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	add_EndEdit(System.EventHandler value) : Void
+  METHOD	public	remove_EndEdit(System.EventHandler value) : Void
+  METHOD	public	get_Root() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel
+  METHOD	public	set_Root(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel value) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdTachieParameter psdTachieParameter, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieCharacterParameter psdTachieCharacterParameter) : Void
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeParameter psdShapeParameter) : Void
+  METHOD	private	PsdShapeParameter_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	PsdTachieCharacterParameter_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	PsdTachieParameter_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	LoadItemsAsync(String file) : System.Threading.Tasks.Task
+  METHOD	private	UpdateViewModels() : Void
+  METHOD	private	SubscribeFolder(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel folder) : Void
+  METHOD	private	UnsubscribeFolder(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel folder) : Void
+  METHOD	private	Item_EnableChanged(Object sender, System.EventArgs e) : Void
+  METHOD	private	Release() : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	private	<LoadItemsAsync>b__23_0() : PsdParser.PsdFile
+  PROP	Root
+  EVENT	BeginEdit
+  EVENT	EndEdit
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerItemWheelTrigger (internal)
+base: TypeSpec
+  METHOD	protected	OnAttached() : Void
+  METHOD	protected	OnDetaching() : Void
+  METHOD	private	AssociatedObject_PreviewMouseWheel(Object sender, System.Windows.Input.MouseWheelEventArgs e) : Void
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerSelectorDialog (public)
+base: System.Windows.Window
+  METHOD	public	.ctor() : Void
+  METHOD	private	Button_Click(Object sender, System.Windows.RoutedEventArgs e) : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerSelectorViewModel (internal)
+base: System.Object
+  METHOD	public	get_Root() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFolderViewModel
+  METHOD	public	get_Result() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	get_AllowMultiple() : Boolean
+  METHOD	public	get_SelectedItemChangedCommand() : System.Windows.Input.ICommand
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder root, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings settings, Boolean allowMultiple) : Void
+  METHOD	private	Subscribe(YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem> vm) : Void
+  METHOD	private	Vm_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	Unsubscribe(YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem> vm) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	Root
+  PROP	Result
+  PROP	AllowMultiple
+  PROP	SelectedItemChangedCommand
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdLayerViewModel (internal)
+base: TypeSpec
+  METHOD	public	get_Thumbnail() : System.Windows.Media.Imaging.BitmapSource
+  METHOD	public	get_HasAnimation() : Boolean
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.FileSource.Psd.PsdLayer psdLayer, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings settings, YukkuriMovieMaker.Plugin.Tachie.Psd.ShiftLayerCommand shiftLayerCommand, YukkuriMovieMaker.Plugin.Tachie.Psd.SwitchLayerCommand switchLayerCommand) : Void
+  METHOD	public	ReceiveWeakEvent(System.Type managerType, Object sender, System.EventArgs e) : Boolean
+  METHOD	private	LoadThumbnail() : System.Threading.Tasks.Task
+  METHOD	private	.cctor() : Void
+  METHOD	private	<get_HasAnimation>b__7_0(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdEyeAnimation x) : Boolean
+  METHOD	private	<get_HasAnimation>b__7_1(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation x) : Boolean
+  METHOD	private	<get_HasAnimation>b__7_2(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation x) : Boolean
+  METHOD	private	<LoadThumbnail>b__10_0(System.Threading.Tasks.Task _) : Void
+  METHOD	private	<LoadThumbnail>b__10_2() : Void
+  PROP	Thumbnail
+  PROP	HasAnimation
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation (public)
+base: System.Object
+  METHOD	public	get_Layers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_Layers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(System.Collections.Immutable.ImmutableList`1<String> layers) : Void
+  PROP	Layers
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset (public)
+base: System.Object
+  METHOD	public	get_Name() : String
+  METHOD	public	set_Name(String value) : Void
+  METHOD	public	get_Layers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_Layers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(String name, System.Collections.Immutable.ImmutableList`1<String> layers) : Void
+  PROP	Name
+  PROP	Layers
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditor (public)
+base: System.Windows.Controls.UserControl
+  METHOD	public	add_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	remove_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	add_EndEdit(System.EventHandler value) : Void
+  METHOD	public	remove_EndEdit(System.EventHandler value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	PsdPresetEditor_DataContextChanged(Object sender, System.Windows.DependencyPropertyChangedEventArgs e) : Void
+  METHOD	private	OldViewModel_BeginEdit(Object sender, System.EventArgs e) : Void
+  METHOD	private	OldViewModel_EndEdit(Object sender, System.EventArgs e) : Void
+  METHOD	public	InitializeComponent() : Void
+  METHOD	private	System.Windows.Markup.IComponentConnector.Connect(Int32 connectionId, Object target) : Void
+  EVENT	BeginEdit
+  EVENT	EndEdit
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorAttribute (internal)
+base: YukkuriMovieMaker.Commons.PropertyEditorAttribute
+  METHOD	public	get_CharacterParameter() : Object
+  METHOD	public	set_CharacterParameter(Object value) : Void
+  METHOD	public	Create() : System.Windows.FrameworkElement
+  METHOD	public	ClearBindings(System.Windows.FrameworkElement control) : Void
+  METHOD	public	SetBindings(System.Windows.FrameworkElement control, Object item, Object propertyOwner, System.Reflection.PropertyInfo propertyInfo) : Void
+  METHOD	public	.ctor() : Void
+  PROP	CharacterParameter
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	get_Name() : String
+  METHOD	public	get_Thumbnail() : System.Windows.Media.Imaging.BitmapSource
+  METHOD	public	get_FilePath() : String
+  METHOD	public	get_Favorite() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset
+  METHOD	public	.ctor(String filePath, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset favoriteSetting) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	LoadThumbnailAsync() : System.Threading.Tasks.Task
+  METHOD	private	ToBuffer(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, Vortice.Direct2D1.ID2D1Bitmap bitmap) : Byte[]
+  METHOD	private	ToBitmapSource(Int32 width, Int32 height, Byte[] buffer) : System.Windows.Media.Imaging.BitmapSource
+  METHOD	private	.cctor() : Void
+  METHOD	private	<LoadThumbnailAsync>b__16_0() : Void
+  METHOD	private	<LoadThumbnailAsync>b__16_1() : Void
+  PROP	Name
+  PROP	Thumbnail
+  PROP	FilePath
+  PROP	Favorite
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorViewModel (internal)
+base: YukkuriMovieMaker.Commons.Bindable
+  METHOD	public	add_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	remove_BeginEdit(System.EventHandler value) : Void
+  METHOD	public	add_EndEdit(System.EventHandler value) : Void
+  METHOD	public	remove_EndEdit(System.EventHandler value) : Void
+  METHOD	public	get_Items() : System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel>
+  METHOD	public	set_Items(System.Collections.Immutable.ImmutableList`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel> value) : Void
+  METHOD	public	get_SelectedItem() : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel
+  METHOD	public	set_SelectedItem(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel value) : Void
+  METHOD	public	get_IsSaved() : Boolean
+  METHOD	public	get_ToggleSaveCommand() : System.Windows.Input.ICommand
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieCharacterParameter characterParameter, YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdTachieParameter tachieParameter) : Void
+  METHOD	private	CharacterParameter_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	TachieParameter_PropertyChanged(Object sender, System.ComponentModel.PropertyChangedEventArgs e) : Void
+  METHOD	private	UpdatePresets() : Void
+  METHOD	private	CreatePresetEditorItemViewModels() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel>
+  METHOD	private	UpdateSelectedItem() : Void
+  METHOD	private	UpdateTachieParameter() : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	private	<CreatePresetEditorItemViewModels>b__27_0(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPreset x) : YukkuriMovieMaker.Plugin.Tachie.Psd.PsdPresetEditorItemViewModel
+  PROP	Items
+  PROP	SelectedItem
+  PROP	IsSaved
+  PROP	ToggleSaveCommand
+  EVENT	BeginEdit
+  EVENT	EndEdit
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeParameter (public)
+base: YukkuriMovieMaker.Plugin.Shape.ShapeParameterBase
+  METHOD	public	.ctor(YukkuriMovieMaker.Project.SharedDataStore sharedData) : Void
+  METHOD	public	get_FilePath() : String
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	get_EnableLayers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_EnableLayers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	get_EnableLayersFilePath() : String
+  METHOD	public	set_EnableLayersFilePath(String value) : Void
+  METHOD	public	CreateMaskExoFilter(Int32 keyFrameIndex, YukkuriMovieMaker.Exo.ExoOutputDescription desc, YukkuriMovieMaker.Plugin.Shape.ShapeMaskExoOutputDescription shapeMaskParameters) : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	CreateShapeItemExoFilter(Int32 keyFrameIndex, YukkuriMovieMaker.Exo.ExoOutputDescription desc) : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	CreateShapeSource(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices) : YukkuriMovieMaker.Player.Video.IShapeSource
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	protected	LoadSharedData(YukkuriMovieMaker.Project.SharedDataStore store) : Void
+  METHOD	protected	SaveSharedData(YukkuriMovieMaker.Project.SharedDataStore store) : Void
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  PROP	FilePath
+  PROP	EnableLayers
+  PROP	EnableLayersFilePath
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapePlugin (public)
+base: System.Object
+  METHOD	public	get_IsExoShapeSupported() : Boolean
+  METHOD	public	get_IsExoMaskSupported() : Boolean
+  METHOD	public	get_Name() : String
+  METHOD	public	CreateShapeParameter(YukkuriMovieMaker.Project.SharedDataStore sharedData) : YukkuriMovieMaker.Plugin.Shape.IShapeParameter
+  METHOD	public	.ctor() : Void
+  PROP	IsExoShapeSupported
+  PROP	IsExoMaskSupported
+  PROP	Name
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeSource (internal)
+base: System.Object
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeParameter parameter) : Void
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  PROP	Output
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieCharacterParameter (public)
+base: YukkuriMovieMaker.Commons.Animatable
+  METHOD	public	get_FilePath() : String
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	set_MouthSensitivity(Double value) : Void
+  METHOD	public	get_MouthSensitivity() : Double
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	.ctor() : Void
+  PROP	FilePath
+  PROP	MouthSensitivity
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter (internal)
+base: YukkuriMovieMaker.Commons.Animatable
+  METHOD	public	get_IsEnabled() : Boolean
+  METHOD	public	set_IsEnabled(Boolean value) : Void
+  METHOD	public	get_FilePath() : String
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	get_PresetDummy() : Object
+  METHOD	public	get_EnableLayers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_EnableLayers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	set_EyeAnimation(YukkuriMovieMaker.Plugin.Tachie.Psd.AnimationMode value) : Void
+  METHOD	public	get_EyeAnimation() : YukkuriMovieMaker.Plugin.Tachie.Psd.AnimationMode
+  METHOD	public	set_MouthAnimation(YukkuriMovieMaker.Plugin.Tachie.Psd.MouthAnimationMode value) : Void
+  METHOD	public	get_MouthAnimation() : YukkuriMovieMaker.Plugin.Tachie.Psd.MouthAnimationMode
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	.ctor() : Void
+  PROP	IsEnabled
+  PROP	FilePath
+  PROP	PresetDummy
+  PROP	EnableLayers
+  PROP	EyeAnimation
+  PROP	MouthAnimation
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameterVisibilityAttribute (internal)
+base: System.Attribute
+  METHOD	public	GetBinding(Object item) : System.Windows.Data.Binding
+  METHOD	public	.ctor() : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieItemParameter (internal)
+base: YukkuriMovieMaker.Commons.Animatable
+  METHOD	public	get_FilePath() : String
+  METHOD	public	set_FilePath(String value) : Void
+  METHOD	public	get_PresetDummy() : Object
+  METHOD	public	get_EnableLayers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	set_EnableLayers(System.Collections.Immutable.ImmutableList`1<String> value) : Void
+  METHOD	public	set_IsHiddenWhenNoSpeech(Boolean value) : Void
+  METHOD	public	get_IsHiddenWhenNoSpeech() : Boolean
+  METHOD	public	GetFiles() : System.Collections.Generic.IEnumerable`1<String>
+  METHOD	public	ReplaceFile(String from, String to) : Void
+  METHOD	public	GetResources() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Project.TimelineResource>
+  METHOD	protected	GetAnimatables() : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.IAnimatable>
+  METHOD	public	.ctor() : Void
+  PROP	FilePath
+  PROP	PresetDummy
+  PROP	EnableLayers
+  PROP	IsHiddenWhenNoSpeech
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachiePlugin (public)
+base: System.Object
+  METHOD	public	get_HasScriptFile() : Boolean
+  METHOD	public	get_Name() : String
+  METHOD	public	CreateCharacterParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter
+  METHOD	public	CreateFaceParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter
+  METHOD	public	CreateItemParameter() : YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter
+  METHOD	public	CreateTachieSource(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices) : YukkuriMovieMaker.Plugin.Tachie.ITachieSource
+  METHOD	public	CreateScriptFile(String scriptDirectoryPath) : Void
+  METHOD	public	CreateExoItems(Int32 FPS, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieItemExoDescription> tachieItemDescriptions, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieFaceItemExoDescription> faceItemDescriptions, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Tachie.TachieVoiceItemExoDescription> voiceDesecriptions) : System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Commons.ExoItem>
+  METHOD	private	GetStringForExo(String text) : String
+  METHOD	public	.ctor() : Void
+  PROP	HasScriptFile
+  PROP	Name
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource (public)
+base: System.Object
+  METHOD	public	get_Output() : Vortice.Direct2D1.ID2D1Image
+  METHOD	public	.ctor(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devices) : Void
+  METHOD	public	Update(YukkuriMovieMaker.Player.Video.TachieSourceDescription desc) : Void
+  METHOD	private	ApplyAnimation(String psdFilePath, System.Collections.Immutable.ImmutableList`1<String> activeLayers, YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings psdFileSettings, System.TimeSpan tachieTime, Double kuchipaku, Double mouthSensitivity, YukkuriMovieMaker.Plugin.Tachie.Psd.AnimationMode eyeAnimationMode, YukkuriMovieMaker.Plugin.Tachie.Psd.MouthAnimationMode mouthAnimationMode, YukkuriMovieMaker.Plugin.Voice.MouthShape mouthShape) : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	private	GetMabataki(System.TimeSpan tachieTime, Double offset, Double interval) : Double
+  METHOD	private	Clear() : Void
+  METHOD	protected	Dispose(Boolean disposing) : Void
+  METHOD	public	Dispose() : Void
+  METHOD	internal	<ApplyAnimation>g__ApplyVolumeMouthAnimation|17_5(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdMouthAnimation animation, <>c__DisplayClass17_0&) : Void
+  METHOD	internal	<ApplyAnimation>g__ApplyVowelMouthAnimation|17_6(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation animation, <>c__DisplayClass17_0&) : Void
+  PROP	Output
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.PsdVowelMouthAnimation (public)
+base: System.Object
+  METHOD	public	get_Key() : String
+  METHOD	public	set_Key(String value) : Void
+  METHOD	public	get_A() : String
+  METHOD	public	set_A(String value) : Void
+  METHOD	public	get_I() : String
+  METHOD	public	set_I(String value) : Void
+  METHOD	public	get_U() : String
+  METHOD	public	set_U(String value) : Void
+  METHOD	public	get_E() : String
+  METHOD	public	set_E(String value) : Void
+  METHOD	public	get_O() : String
+  METHOD	public	set_O(String value) : Void
+  METHOD	public	get_Silence() : String
+  METHOD	public	set_Silence(String value) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	public	.ctor(String key, String a, String i, String u, String e, String o, String silence) : Void
+  METHOD	internal	GetMouthLayer(YukkuriMovieMaker.Plugin.Voice.MouthShape mouthShape) : String
+  PROP	Key
+  PROP	A
+  PROP	I
+  PROP	U
+  PROP	E
+  PROP	O
+  PROP	Silence
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.ShiftLayerCommand (public)
+base: System.Object
+  METHOD	public	add_CanExecuteChanged(System.EventHandler value) : Void
+  METHOD	public	remove_CanExecuteChanged(System.EventHandler value) : Void
+  METHOD	public	get_Items() : System.Collections.Generic.List`1<YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>>
+  METHOD	public	set_Items(System.Collections.Generic.List`1<YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>> value) : Void
+  METHOD	public	CanExecute(Object parameter) : Boolean
+  METHOD	public	Execute(Object parameter) : Void
+  METHOD	public	.ctor() : Void
+  PROP	Items
+  EVENT	CanExecuteChanged
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.SwitchLayerCommand (public)
+base: System.Object
+  METHOD	public	add_CanExecuteChanged(System.EventHandler value) : Void
+  METHOD	public	remove_CanExecuteChanged(System.EventHandler value) : Void
+  METHOD	public	get_Items() : System.Collections.Generic.List`1<YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>>
+  METHOD	public	set_Items(System.Collections.Generic.List`1<YukkuriMovieMaker.Plugin.Tachie.Psd.IPsdItemViewModel`1<YukkuriMovieMaker.Plugin.FileSource.Psd.PsdItem>> value) : Void
+  METHOD	public	CanExecute(Object parameter) : Boolean
+  METHOD	public	Execute(Object parameter) : Void
+  METHOD	public	.ctor() : Void
+  PROP	Items
+  EVENT	CanExecuteChanged
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] YukkuriMovieMaker.Plugin.Tachie.Psd.TreeViewSelectedItemBehavior (internal)
+base: TypeSpec
+  METHOD	public	get_SelectedValue() : Object
+  METHOD	public	set_SelectedValue(Object value) : Void
+  METHOD	protected	OnAttached() : Void
+  METHOD	protected	OnDetaching() : Void
+  METHOD	private	AssociatedObject_SelectedItemChanged(Object sender, System.Windows.RoutedPropertyChangedEventArgs`1<Object> e) : Void
+  METHOD	public	.ctor() : Void
+  METHOD	private	.cctor() : Void
+  PROP	SelectedValue
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] <PsdShapeParameter_PropertyChanged>d__20 (private)
+base: System.ValueType
+  METHOD	private	MoveNext() : Void
+  METHOD	private	SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] <PsdTachieParameter_PropertyChanged>d__22 (private)
+base: System.ValueType
+  METHOD	private	MoveNext() : Void
+  METHOD	private	SetStateMachine(System.Runtime.CompilerServices.IAsyncStateMachine stateMachine) : Void
+
+# [YukkuriMovieMaker.Plugin.Tachie.Psd.dll] PsdShapeParameterDataStore (private)
+base: System.Object
+  METHOD	public	.ctor(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeParameter parameter) : Void
+  METHOD	public	get_FilePath() : String
+  METHOD	public	get_EnableLayers() : System.Collections.Immutable.ImmutableList`1<String>
+  METHOD	public	get_EnableLayersFilePath() : String
+  METHOD	public	ApplyTo(YukkuriMovieMaker.Plugin.Tachie.Psd.PsdShapeParameter parameter) : Void
+  PROP	FilePath
+  PROP	EnableLayers
+  PROP	EnableLayersFilePath

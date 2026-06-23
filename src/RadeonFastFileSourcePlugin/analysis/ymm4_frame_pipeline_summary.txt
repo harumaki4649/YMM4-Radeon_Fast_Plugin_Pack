@@ -1,0 +1,742 @@
+# YMM4 frame pipeline static analysis
+generated: 2026-06-04 15:10:26
+
+## Focus methods
+YukkuriMovieMaker.dll	0x06002BA5	private	YukkuriMovieMaker.Player.Audio.TimelineSource.OpenCloseResources(System.TimeSpan start, System.TimeSpan end) : Void
+YukkuriMovieMaker.dll	0x06002BA4	protected	YukkuriMovieMaker.Player.Audio.TimelineSource.read(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+YukkuriMovieMaker.dll	0x06002BA6	private	YukkuriMovieMaker.Player.Audio.TimelineSource.ReadResources(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+YukkuriMovieMaker.dll	0x06002668	public	YukkuriMovieMaker.Player.Video.EffectedItemSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+YukkuriMovieMaker.dll	0x0600266B	private	YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateEffects(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+YukkuriMovieMaker.dll	0x0600266A	private	YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateSource(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+YukkuriMovieMaker.dll	0x0600268C	public	YukkuriMovieMaker.Player.Video.EffectedSourceOutput.Update(Int32 inputIndex, Int32 inputCount, YukkuriMovieMaker.Player.Video.ISourceOutput input, YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription itemDesc, System.Collections.Generic.List`1<YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair> effects) : Void
+YukkuriMovieMaker.dll	0x0600270E	public	YukkuriMovieMaker.Player.Video.Items.TachieSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc) : Void
+YukkuriMovieMaker.dll	0x060026CA	private	YukkuriMovieMaker.Player.Video.TimelineSource.DrawResource(YukkuriMovieMaker.Project.Items.IVideoItem item, YukkuriMovieMaker.Player.Video.EffectedItemSource source) : Void
+YukkuriMovieMaker.dll	0x060026C5	public	YukkuriMovieMaker.Player.Video.TimelineSource.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void
+YukkuriMovieMaker.dll	0x060026C6	protected	YukkuriMovieMaker.Player.Video.TimelineSource.UpdateResources(System.TimeSpan time) : Void
+YukkuriMovieMaker.dll	0x060012CE	public	YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.CreateFileAsync(YukkuriMovieMaker.Commons.ProgressMessage progressMessage, System.Threading.CancellationToken cancellationToken) : System.Threading.Tasks.Task
+YukkuriMovieMaker.dll	0x060012D2	private	YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.Render(YukkuriMovieMaker.Player.Video.TimelineSource videoSource, Vortice.Direct2D1.ID2D1Bitmap targetBitmap, Vortice.Direct2D1.ID2D1Bitmap readableBitmap, Int32 frame) : Void
+YukkuriMovieMaker.Plugin.dll	0x06002F00	public	YukkuriMovieMaker.Commons.CrossDeviceFrameBridge.Transfer(Vortice.Direct3D11.ID3D11Texture2D sourceTexture) : Vortice.Direct2D1.ID2D1Bitmap1
+YukkuriMovieMaker.Plugin.dll	0x06002187	public	YukkuriMovieMaker.Plugin.Tachie.ITachieSource.Update(System.TimeSpan tachieTime, System.TimeSpan tachieLength, System.TimeSpan faceTime, System.TimeSpan faceLength, YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter characterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter itemParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter faceParameter, Double kuchipaku) : Void
+YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll	0x0600003D	public	YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegD3D11VideoProcessor.ProcessFrame(IntPtr textureHandle, UInt32 arraySlice) : Boolean
+YukkuriMovieMaker.Plugin.Tachie.Psd.dll	0x060001A6	public	YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource.Update(YukkuriMovieMaker.Player.Video.TachieSourceDescription desc) : Void
+
+## Calls made by focus methods
+
+### YukkuriMovieMaker.Player.Audio.TimelineSource.OpenCloseResources(System.TimeSpan start, System.TimeSpan end) : Void
+  -> 0000 newobj <>c__DisplayClass12_0..ctor
+  -> 001B callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0026 callvirt YukkuriMovieMaker.Project.VideoInfo.GetFrameFrom
+  -> 0037 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 003D callvirt YukkuriMovieMaker.Project.VideoInfo.GetFrameFrom
+  -> 004D callvirt TypeSpec.get_Keys
+  -> 005E call System.Linq.Enumerable.Where
+  -> 0069 callvirt TypeSpec.get_Keys
+  -> 007A call System.Linq.Enumerable.Where
+  -> 0086 callvirt TypeSpec.get_Keys
+  -> 0097 call System.Linq.Enumerable.Where
+  -> 009E call System.Linq.Enumerable.Union
+  -> 00A4 call System.Linq.Enumerable.Union
+  -> 00A9 call System.Linq.Enumerable.ToList
+  -> 00AE callvirt TypeSpec.GetEnumerator
+  -> 00B7 callvirt TypeSpec.get_Current
+  -> 00C6 callvirt TypeSpec.get_Item
+  -> 00CF callvirt YukkuriMovieMaker.Player.Audio.AudioStreamBase.Dispose
+  -> 00DC callvirt TypeSpec.Remove
+  -> 00EA callvirt YukkuriMovieMaker.Commons.DisposeCollector.Remove
+  -> 00F0 callvirt System.Collections.IEnumerator.MoveNext
+  -> 00FD callvirt System.IDisposable.Dispose
+  -> 0109 callvirt YukkuriMovieMaker.Project.Timeline.get_Items
+  -> 010E call System.Linq.Enumerable.OfType
+  -> 011F call System.Linq.Enumerable.Where
+  -> 0130 call System.Linq.Enumerable.Where
+  -> 0141 call System.Linq.Enumerable.Where
+  -> 0146 call System.Linq.Enumerable.ToList
+  -> 0157 call System.Linq.Enumerable.Select
+  -> 015C call System.Linq.Enumerable.ToList
+  -> 016D callvirt TypeSpec.ForEach
+
+### YukkuriMovieMaker.Player.Audio.TimelineSource.read(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+  -> 0002 callvirt YukkuriMovieMaker.Player.Audio.AudioStreamBase.get_Position
+  -> 0007 call YukkuriMovieMaker.Player.Audio.AudioStreamBase.PositionToTime
+  -> 000F callvirt YukkuriMovieMaker.Player.Audio.AudioStreamBase.get_Position
+  -> 0017 call YukkuriMovieMaker.Player.Audio.AudioStreamBase.PositionToTime
+  -> 0020 call YukkuriMovieMaker.Player.Audio.TimelineSource.OpenCloseResources
+  -> 0029 call YukkuriMovieMaker.Player.Audio.TimelineSource.ReadResources
+
+### YukkuriMovieMaker.Player.Audio.TimelineSource.ReadResources(Single[] destBuffer, Int32 offset, Int32 count) : Int32
+  -> 0000 newobj <>c__DisplayClass14_0..ctor
+  -> 0026 callvirt YukkuriMovieMaker.Player.Audio.AudioStreamBase.get_Duration
+  -> 0039 call System.Math.Min
+  -> 003E call System.Math.Max
+  -> 004F callvirt TypeSpec.get_Count
+  -> 005A callvirt TypeSpec.get_Values
+  -> 005F callvirt TypeSpec.get_Count
+  -> 006C callvirt TypeSpec.get_Count
+  -> 0077 callvirt TypeSpec.get_Values
+  -> 007C callvirt TypeSpec.get_Count
+  -> 009C callvirt TypeSpec.Add
+  -> 00B8 callvirt TypeSpec.get_Count
+  -> 00C0 callvirt TypeSpec.RemoveRange
+  -> 00D0 callvirt TypeSpec.get_Item
+  -> 00F1 callvirt TypeSpec.set_Item
+  -> 0101 callvirt TypeSpec.get_Count
+  -> 011A call System.Threading.Tasks.Parallel.ForEach
+
+### YukkuriMovieMaker.Player.Video.EffectedItemSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  -> 0002 call YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateSource
+  -> 0009 call YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateEffects
+
+### YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateEffects(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  -> 0001 call YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Source
+  -> 0006 callvirt YukkuriMovieMaker.Player.Video.ISource.get_Outputs
+  -> 000B call System.Linq.Enumerable.ToList
+  -> 0017 callvirt TypeSpec.get_Count
+  -> 001D callvirt TypeSpec.get_Count
+  -> 002E callvirt TypeSpec.get_Count
+  -> 0033 call System.Linq.Enumerable.Skip
+  -> 0038 call System.Linq.Enumerable.ToList
+  -> 003D callvirt TypeSpec.GetEnumerator
+  -> 0047 call TypeSpec.get_Current
+  -> 0050 callvirt YukkuriMovieMaker.Player.Video.EffectedSourceOutput.Dispose
+  -> 005D callvirt YukkuriMovieMaker.Commons.DisposeCollector.Remove
+  -> 006A callvirt TypeSpec.Remove
+  -> 0072 call TypeSpec.MoveNext
+  -> 0095 newobj YukkuriMovieMaker.Player.Video.EffectedSourceOutput..ctor
+  -> 00A4 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 00B1 callvirt TypeSpec.Add
+  -> 00BC callvirt TypeSpec.get_Count
+  -> 00C2 callvirt TypeSpec.get_Count
+  -> 00CF callvirt YukkuriMovieMaker.Project.Items.IVideoItem.get_VideoEffects
+  -> 00E0 call System.Linq.Enumerable.Select
+  -> 00E6 call YukkuriMovieMaker.Player.Video.EffectedItemSource.get_ParentEffects
+  -> 00EB call System.Linq.Enumerable.Concat
+  -> 010F call System.Linq.Enumerable.Where
+  -> 0114 call System.Linq.Enumerable.ToList
+  -> 0122 callvirt TypeSpec.get_Item
+  -> 0131 callvirt TypeSpec.get_Item
+  -> 0139 callvirt TypeSpec.get_Count
+  -> 0142 callvirt YukkuriMovieMaker.Player.Video.EffectedSourceOutput.Update
+  -> 0150 callvirt TypeSpec.get_Count
+  -> 016B callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 0184 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 018F callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 0197 callvirt Vortice.Direct2D1.ID2D1DeviceContext.CreateCommandList
+  -> 01AD callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 01B9 callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 01BF callvirt Vortice.Direct2D1.ID2D1RenderTarget.BeginDraw
+  -> 01CA callvirt TypeSpec.get_Count
+  -> 01E6 newobj Vortice.RawRectF..ctor
+  -> 01F1 callvirt Vortice.Direct2D1.ID2D1RenderTarget.FillRectangle
+  -> 01FC callvirt TypeSpec.GetEnumerator
+  -> 0206 call TypeSpec.get_Current
+  -> 0210 callvirt YukkuriMovieMaker.Player.Video.EffectedSourceOutput.get_Output
+  -> 0217 callvirt Vortice.Direct2D1.ID2D1DeviceContext.DrawImage
+  -> 021E call TypeSpec.MoveNext
+  -> 0236 callvirt Vortice.Direct2D1.ID2D1RenderTarget.EndDraw
+  -> 0242 callvirt Vortice.Direct2D1.ID2D1CommandList.Close
+  -> 024A callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0255 callvirt YukkuriMovieMaker.Project.Items.IVideoItem.get_IsClippingWithObjectAbove
+  -> 0266 newobj Vortice.Direct2D1.Effects.AlphaMask..ctor
+  -> 027C callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 028F call SharpGen.Runtime.RawBool.op_Implicit
+  -> 0294 callvirt Vortice.Direct2D1.ID2D1Effect.SetInput
+  -> 02A0 callvirt Vortice.Direct2D1.ID2D1Effect.get_Output
+  -> 02B6 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 02C2 call YukkuriMovieMaker.Player.Video.EffectedItemSource.set_Output
+  -> 02DA call SharpGen.Runtime.RawBool.op_Implicit
+  -> 02DF callvirt Vortice.Direct2D1.ID2D1Effect.SetInput
+  -> 02ED call SharpGen.Runtime.RawBool.op_Implicit
+  -> 02F2 callvirt Vortice.Direct2D1.ID2D1Effect.SetInput
+  -> 0303 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 030F call YukkuriMovieMaker.Player.Video.EffectedItemSource.set_Output
+  -> 031B call System.Linq.Enumerable.FirstOrDefault
+  -> 0327 call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.get_DrawDescription
+  -> 0330 call YukkuriMovieMaker.Player.Video.EffectedItemSource.CreateEmptyDrawDescription
+  -> 0335 call YukkuriMovieMaker.Player.Video.EffectedItemSource.set_DrawDescription
+
+### YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateSource(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void
+  -> 0001 call YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Source
+  -> 0007 callvirt YukkuriMovieMaker.Player.Video.ISource.Update
+
+### YukkuriMovieMaker.Player.Video.EffectedSourceOutput.Update(Int32 inputIndex, Int32 inputCount, YukkuriMovieMaker.Player.Video.ISourceOutput input, YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription itemDesc, System.Collections.Generic.List`1<YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair> effects) : Void
+  -> 0004 call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.CreateDrawDescriotion
+  -> 000B callvirt YukkuriMovieMaker.Player.Video.IDrawable.get_Output
+  -> 001A callvirt TypeSpec.get_Count
+  -> 0021 callvirt TypeSpec.get_Item
+  -> 0026 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_Effect
+  -> 002B callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.ClearInput
+  -> 0037 callvirt TypeSpec.get_Count
+  -> 003E callvirt TypeSpec.get_Item
+  -> 0043 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_Effect
+  -> 0048 callvirt System.IDisposable.Dispose
+  -> 0059 callvirt TypeSpec.get_Count
+  -> 0060 callvirt TypeSpec.RemoveAt
+  -> 0067 callvirt TypeSpec.get_Count
+  -> 0072 callvirt TypeSpec.get_Count
+  -> 0086 callvirt TypeSpec.get_Count
+  -> 0095 callvirt TypeSpec.get_Item
+  -> 009A callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_EffectItem
+  -> 00A2 callvirt TypeSpec.get_Item
+  -> 00A7 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_EffectItem
+  -> 00B7 callvirt TypeSpec.get_Count
+  -> 00C6 callvirt TypeSpec.get_Item
+  -> 00CB callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_Effect
+  -> 00D0 callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.ClearInput
+  -> 00DC callvirt TypeSpec.get_Item
+  -> 00E1 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_Effect
+  -> 00E6 callvirt System.IDisposable.Dispose
+  -> 00EE callvirt TypeSpec.get_Item
+  -> 00F3 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_EffectItem
+  -> 00FE callvirt YukkuriMovieMaker.Plugin.Effects.IVideoEffect.CreateVideoEffect
+  -> 0109 callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.SetInput
+  -> 0113 callvirt TypeSpec.get_Item
+  -> 0118 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_TimeSource
+  -> 011E callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_TimeOffset
+  -> 0124 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DurationOffset
+  -> 0135 callvirt TypeSpec.get_Item
+  -> 013A callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupIndex
+  -> 0142 callvirt TypeSpec.get_Item
+  -> 0147 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupCount
+  -> 014C call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.CreateEffectDescription
+  -> 0156 callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.Update
+  -> 015D callvirt YukkuriMovieMaker.Player.Video.IDrawable.get_Output
+  -> 0166 callvirt TypeSpec.get_Item
+  -> 016B callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_TimeSource
+  -> 0173 callvirt TypeSpec.get_Item
+  -> 0178 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_EffectItem
+  -> 0180 callvirt TypeSpec.get_Item
+  -> 0185 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupIndex
+  -> 018D callvirt TypeSpec.get_Item
+  -> 0192 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupCount
+  -> 019B newobj YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource..ctor
+  -> 01A8 callvirt TypeSpec.get_Count
+  -> 01B8 callvirt TypeSpec.Add
+  -> 01CB callvirt TypeSpec.set_Item
+  -> 01DC callvirt TypeSpec.get_Item
+  -> 01E1 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_Effect
+  -> 01F2 callvirt TypeSpec.get_Item
+  -> 01F7 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.get_EffectInput
+  -> 01FD call SharpGen.Runtime.CppObject.op_Inequality
+  -> 0207 callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.SetInput
+  -> 0211 callvirt TypeSpec.get_Item
+  -> 0216 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_TimeSource
+  -> 021C callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_TimeOffset
+  -> 0222 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DurationOffset
+  -> 0233 callvirt TypeSpec.get_Item
+  -> 0238 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupIndex
+  -> 0240 callvirt TypeSpec.get_Item
+  -> 0245 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupCount
+  -> 024A call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.CreateEffectDescription
+  -> 0255 callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.Update
+  -> 025D callvirt YukkuriMovieMaker.Player.Video.IDrawable.get_Output
+  -> 0271 callvirt TypeSpec.get_Item
+  -> 0276 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.<Clone>$
+  -> 027F callvirt TypeSpec.get_Item
+  -> 0284 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_TimeSource
+  -> 0289 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.set_TimeSource
+  -> 0292 callvirt TypeSpec.get_Item
+  -> 0297 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupIndex
+  -> 029C callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.set_GroupIndex
+  -> 02A5 callvirt TypeSpec.get_Item
+  -> 02AA callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_GroupCount
+  -> 02AF callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.set_GroupCount
+  -> 02B7 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.set_EffectInput
+  -> 02BE callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectAndEffectResource.set_EffectOutput
+  -> 02C3 callvirt TypeSpec.set_Item
+  -> 02CF callvirt TypeSpec.get_Count
+  -> 02DA call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.get_PreRenderOutput
+  -> 02E0 call SharpGen.Runtime.CppObject.op_Inequality
+  -> 02EE callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DrawingEffect
+  -> 02F7 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DrawingEffect
+  -> 0303 call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.set_PreRenderOutput
+  -> 0309 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DrawingEffect
+  -> 030F callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.SetInput
+  -> 0316 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DrawingEffect
+  -> 0324 callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_TimeOffset
+  -> 032A callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DurationOffset
+  -> 033A call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.CreateEffectDescription
+  -> 033F callvirt YukkuriMovieMaker.Player.Video.IVideoEffectProcessor.Update
+  -> 0344 call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.set_DrawDescription
+  -> 034B callvirt YukkuriMovieMaker.Player.Video.ISourceOutput.get_DrawingEffect
+  -> 0350 callvirt YukkuriMovieMaker.Player.Video.IDrawable.get_Output
+  -> 0355 call YukkuriMovieMaker.Player.Video.EffectedSourceOutput.set_Output
+
+### YukkuriMovieMaker.Player.Video.Items.TachieSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc) : Void
+  -> 0000 newobj <>c__DisplayClass27_0..ctor
+  -> 0028 call YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 0034 call YukkuriMovieMaker.Project.Character.get_TachieType
+  -> 0039 call System.Type.op_Inequality
+  -> 005E callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 0077 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 008A call YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 0096 call YukkuriMovieMaker.Project.Character.get_TachieType
+  -> 00AD call YukkuriMovieMaker.Plugin.TachieSourceFactory.CreateSource
+  -> 00CB callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 00D7 callvirt YukkuriMovieMaker.Plugin.Tachie.ITachieSource.get_Output
+  -> 010B newobj YukkuriMovieMaker.Player.Video.SourceOutput..ctor
+  -> 0121 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 0127 call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveVoice
+  -> 0133 call YukkuriMovieMaker.Project.Items.VoiceItem.get_FilePath
+  -> 013E call System.String.op_Inequality
+  -> 014C call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveVoice
+  -> 016A callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 0171 call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveVoice
+  -> 017D call YukkuriMovieMaker.Project.Items.VoiceItem.get_FilePath
+  -> 0189 call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveVoice
+  -> 01B4 newobj YukkuriMovieMaker.Project.TimelineVerticalLine..ctor
+  -> 01C3 newobj YukkuriMovieMaker.Project.Timeline..ctor
+  -> 01CB newobj YukkuriMovieMaker.Project.Scenes..ctor
+  -> 01D6 callvirt YukkuriMovieMaker.Project.Scenes.AddScene
+  -> 01DF call System.Array.Empty
+  -> 01E4 newobj YukkuriMovieMaker.Project.Scene..ctor
+  -> 01FF callvirt YukkuriMovieMaker.Player.Video.TimelineSourceDescription.get_FPS
+  -> 0204 call TypeSpec.get_Default
+  -> 0209 callvirt YukkuriMovieMaker.Settings.YMMSettings.GetVoiceUpsamplingMode
+  -> 0211 newobj YukkuriMovieMaker.Player.Audio.EffectedItemSource..ctor
+  -> 0227 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 0234 callvirt YukkuriMovieMaker.Player.Audio.AudioStreamBase.Seek
+  -> 0248 callvirt YukkuriMovieMaker.Player.Video.TimelineSourceDescription.get_TimelinePosition
+  -> 024D callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Frame
+  -> 0258 callvirt YukkuriMovieMaker.Project.Items.BaseItem.get_Frame
+  -> 0264 callvirt YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 0269 callvirt YukkuriMovieMaker.Project.Character.get_MouseSmooth
+  -> 026E call YukkuriMovieMaker.Player.Video.Items.TachieSource.GetVolume
+  -> 028B call YukkuriMovieMaker.Player.Video.Items.TachieSource.GetMouthShape
+  -> 02A4 call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveFaces
+  -> 02C8 call System.Linq.Enumerable.Where
+  -> 02F2 call YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 02FE call YukkuriMovieMaker.Project.Character.get_TachieCharacterParameter
+  -> 0310 call YukkuriMovieMaker.Project.Items.TachieItem.get_TachieItemParameter
+  -> 0317 newobj YukkuriMovieMaker.Player.Video.TachieDescription..ctor
+  -> 0328 newobj YukkuriMovieMaker.Player.Video.TachieSourceDescription..ctor
+  -> 0332 callvirt YukkuriMovieMaker.Plugin.Tachie.ITachieSource2.Update
+  -> 033D call YukkuriMovieMaker.Player.Video.Items.TachieSource.get_ActiveFaces
+  -> 0342 call System.Linq.Enumerable.FirstOrDefault
+  -> 0353 callvirt YukkuriMovieMaker.Player.Video.TimelineSourceDescription.get_TimelinePosition
+  -> 0358 callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Frame
+  -> 035F callvirt YukkuriMovieMaker.Project.Items.IItem.get_Frame
+  -> 036B callvirt YukkuriMovieMaker.Player.Video.TimelineSourceDescription.get_FPS
+  -> 0370 newobj YukkuriMovieMaker.Player.Video.FrameTime..ctor
+  -> 0375 call YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 0389 callvirt YukkuriMovieMaker.Project.Items.IItem.get_Length
+  -> 0394 callvirt YukkuriMovieMaker.Player.Video.TimelineSourceDescription.get_FPS
+  -> 0399 newobj YukkuriMovieMaker.Player.Video.FrameTime..ctor
+  -> 039E call YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 03BE callvirt YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription.get_ItemPosition
+  -> 03C3 callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 03CE callvirt YukkuriMovieMaker.Project.Items.BaseItem.get_Length
+  -> 03D9 call YukkuriMovieMaker.Commons.FrameTime.FrameToTime
+  -> 03E8 callvirt YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 03ED callvirt YukkuriMovieMaker.Project.Character.get_TachieCharacterParameter
+  -> 03F8 callvirt YukkuriMovieMaker.Project.Items.TachieItem.get_TachieItemParameter
+  -> 0406 callvirt YukkuriMovieMaker.Project.Items.IFaceItem.get_TachieFaceParameter
+  -> 040C callvirt YukkuriMovieMaker.Plugin.Tachie.ITachieSource.Update
+  -> 041F callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 042A callvirt YukkuriMovieMaker.Plugin.Tachie.ITachieSource.get_Output
+  -> 042F callvirt Vortice.Direct2D1.ID2D1DeviceContext.GetImageLocalBounds
+  -> 0454 call System.Math.Max
+
+### YukkuriMovieMaker.Player.Video.TimelineSource.DrawResource(YukkuriMovieMaker.Project.Items.IVideoItem item, YukkuriMovieMaker.Player.Video.EffectedItemSource source) : Void
+  -> 0006 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 000C call TypeSpec.get_Default
+  -> 0011 callvirt YukkuriMovieMaker.Settings.YMMSettings.GetZoomMode
+  -> 0018 callvirt YukkuriMovieMaker.Project.Items.IVideoItem.get_Blend
+  -> 001F call YukkuriMovieMaker.Player.BlendEx.IsCompositionEffect
+  -> 0028 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Output
+  -> 002F call YukkuriMovieMaker.Player.BlendEx.ToD2DCompositionMode
+  -> 0034 callvirt Vortice.Direct2D1.ID2D1DeviceContext.DrawImage
+  -> 003C callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Output
+  -> 0042 call YukkuriMovieMaker.Player.BlendEx.ToD2DBlendMode
+  -> 005B callvirt Vortice.Direct2D1.ID2D1DeviceContext6.BlendImage
+
+### YukkuriMovieMaker.Player.Video.TimelineSource.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void
+  -> 0000 newobj <>c__DisplayClass24_0..ctor
+  -> 0008 call YukkuriMovieMaker.Player.Video.TimelineSource.UpdateResources
+  -> 0015 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 001A callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 001F callvirt YukkuriMovieMaker.Project.VideoInfo.get_FPS
+  -> 0024 call YukkuriMovieMaker.Commons.FrameTime.TimeToFrame
+  -> 0035 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 003A callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 003F callvirt YukkuriMovieMaker.Project.VideoInfo.get_Width
+  -> 004A callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 004F callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0054 callvirt YukkuriMovieMaker.Project.VideoInfo.get_Height
+  -> 0059 newobj System.Drawing.Size..ctor
+  -> 006A callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 006F callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0074 callvirt YukkuriMovieMaker.Project.VideoInfo.get_FPS
+  -> 0079 newobj YukkuriMovieMaker.Player.Video.FrameTime..ctor
+  -> 0084 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0089 callvirt YukkuriMovieMaker.Project.Timeline.get_Length
+  -> 0094 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0099 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 009E callvirt YukkuriMovieMaker.Project.VideoInfo.get_FPS
+  -> 00A3 newobj YukkuriMovieMaker.Player.Video.FrameTime..ctor
+  -> 00AE callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 00B3 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 00B8 callvirt YukkuriMovieMaker.Project.VideoInfo.get_FPS
+  -> 00C4 callvirt YukkuriMovieMaker.Project.Scene.get_ID
+  -> 00CF callvirt YukkuriMovieMaker.Project.Scene.get_AllScenesWithParentScenesInfo
+  -> 00D4 newobj YukkuriMovieMaker.Player.Video.TimelineSourceDescription..ctor
+  -> 0103 call System.Linq.Enumerable.Where
+  -> 0121 call SharpGen.Runtime.CppObject.op_Inequality
+  -> 0134 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 013F callvirt YukkuriMovieMaker.Commons.DisposeCollector.DisposeAndClear
+  -> 014A callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 0157 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 015C callvirt Vortice.Direct2D1.ID2D1DeviceContext.CreateCommandList
+  -> 0172 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 017E callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0184 callvirt Vortice.Direct2D1.ID2D1RenderTarget.BeginDraw
+  -> 019E newobj Vortice.Mathematics.Color4..ctor
+  -> 01A3 newobj TypeSpec..ctor
+  -> 01A8 callvirt Vortice.Direct2D1.ID2D1RenderTarget.Clear
+  -> 01B3 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 01B8 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 01BD callvirt YukkuriMovieMaker.Project.VideoInfo.get_BackgroundColor
+  -> 01C5 call System.Windows.Media.Color.get_A
+  -> 01D2 call YukkuriMovieMaker.Commons.ColorEx.ToColor4
+  -> 01E1 callvirt Vortice.Direct2D1.ID2D1RenderTarget.CreateSolidColorBrush
+  -> 01EF callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 01F4 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 01F9 callvirt YukkuriMovieMaker.Project.VideoInfo.get_Width
+  -> 020C callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0211 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0216 callvirt YukkuriMovieMaker.Project.VideoInfo.get_Height
+  -> 0229 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 022E callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0233 callvirt YukkuriMovieMaker.Project.VideoInfo.get_Width
+  -> 0245 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 024A callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 024F callvirt YukkuriMovieMaker.Project.VideoInfo.get_Height
+  -> 025B newobj Vortice.RawRectF..ctor
+  -> 0262 callvirt Vortice.Direct2D1.ID2D1RenderTarget.FillRectangle
+  -> 026F callvirt System.IDisposable.Dispose
+  -> 027B call YukkuriMovieMaker.Player.Video.TimelineSource.GetOrderedTimelineResources
+  -> 0280 callvirt TypeSpec.GetEnumerator
+  -> 028E callvirt TypeSpec.get_Current
+  -> 029B call TypeSpec.Deconstruct
+  -> 02AA callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Source
+  -> 02DD newobj Vortice.RawRectF..ctor
+  -> 02E8 callvirt Vortice.Direct2D1.ID2D1RenderTarget.FillRectangle
+  -> 02F0 callvirt Vortice.Direct2D1.ID2D1RenderTarget.EndDraw
+  -> 02F8 callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 02FF callvirt Vortice.Direct2D1.ID2D1CommandList.Close
+  -> 030D callvirt YukkuriMovieMaker.Commons.DisposeCollector.Remove
+  -> 031A callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 0323 callvirt YukkuriMovieMaker.Player.Video.IFrameBufferSource.set_Input
+  -> 0330 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0335 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 033A callvirt YukkuriMovieMaker.Project.VideoInfo.get_Width
+  -> 0345 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 034A callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 034F callvirt YukkuriMovieMaker.Project.VideoInfo.get_Height
+  -> 0354 newobj System.Drawing.Size..ctor
+  -> 0359 callvirt YukkuriMovieMaker.Player.Video.IFrameBufferSource.set_FrameSize
+  -> 0366 callvirt YukkuriMovieMaker.Project.Items.IItem.get_Frame
+  -> 0370 callvirt YukkuriMovieMaker.Project.Items.IItem.get_Length
+  -> 0379 callvirt YukkuriMovieMaker.Project.Items.IItem.get_Layer
+  -> 038E newobj YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription..ctor
+  -> 0393 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.Update
+  -> 039F callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 03A4 callvirt Vortice.Direct2D1.ID2D1DeviceContext.CreateCommandList
+  -> 03BA callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 03C6 callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 03CC callvirt Vortice.Direct2D1.ID2D1RenderTarget.BeginDraw
+  -> 03E6 newobj Vortice.Mathematics.Color4..ctor
+  -> 03EB newobj TypeSpec..ctor
+  -> 03F0 callvirt Vortice.Direct2D1.ID2D1RenderTarget.Clear
+  -> 03F7 callvirt YukkuriMovieMaker.Player.Video.IFrameBufferSource.get_ClearBackground
+  -> 0403 callvirt Vortice.Direct2D1.ID2D1DeviceContext.DrawImage
+  -> 040A callvirt YukkuriMovieMaker.Project.Items.IVideoItem.get_IsClippingWithObjectAbove
+  -> 041F callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.SetAlphaMask
+  -> 0429 call YukkuriMovieMaker.Player.Video.TimelineSource.DrawResource
+  -> 0430 callvirt YukkuriMovieMaker.Project.Items.IVideoItem.get_IsClippingWithObjectAbove
+  -> 0439 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Output
+  -> 0444 callvirt System.Collections.IEnumerator.MoveNext
+  -> 0456 callvirt System.IDisposable.Dispose
+  -> 0474 newobj Vortice.RawRectF..ctor
+  -> 047F callvirt Vortice.Direct2D1.ID2D1RenderTarget.FillRectangle
+  -> 0485 callvirt Vortice.Direct2D1.ID2D1RenderTarget.EndDraw
+  -> 048D callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0498 callvirt Vortice.Direct2D1.ID2D1CommandList.Close
+  -> 049F call YukkuriMovieMaker.Player.Video.TimelineSource.get_TimelineItemRects
+  -> 04B3 call YukkuriMovieMaker.Player.Video.TimelineSource.get_TimelineItemRects
+  -> 04B8 callvirt TypeSpec.Clear
+  -> 04BE call YukkuriMovieMaker.Player.Video.TimelineSource.get_NeedTimelineItemRects
+  -> 04C9 call YukkuriMovieMaker.Player.Video.TimelineSource.GetOrderedTimelineResources
+  -> 04ED call System.Linq.Enumerable.Where
+  -> 04F2 call System.Linq.Enumerable.Reverse
+  -> 04F7 callvirt TypeSpec.GetEnumerator
+  -> 0505 callvirt TypeSpec.get_Current
+  -> 050E call TypeSpec.get_Key
+  -> 0517 call TypeSpec.get_Value
+  -> 0524 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 052B callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Output
+  -> 0530 callvirt Vortice.Direct2D1.ID2D1DeviceContext.GetImageLocalBounds
+  -> 0539 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_ParentEffects
+  -> 055D call System.Linq.Enumerable.Where
+  -> 0562 call System.Linq.Enumerable.LastOrDefault
+  -> 056E call YukkuriMovieMaker.Player.Video.TimelineSource.get_TimelineItemRects
+  -> 0575 callvirt YukkuriMovieMaker.Player.Video.TimeSourceAndEffectPair.get_TimeSource
+  -> 0583 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_DrawDescription
+  -> 0588 call System.Array.Empty
+  -> 058D newobj TypeSpec..ctor
+  -> 0592 callvirt TypeSpec.Add
+  -> 059A call YukkuriMovieMaker.Player.Video.TimelineSource.get_TimelineItemRects
+  -> 05A5 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_DrawDescription
+  -> 05AC callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_Source
+  -> 05B1 callvirt YukkuriMovieMaker.Player.Video.ISource.get_Controllers
+  -> 05B6 newobj TypeSpec..ctor
+  -> 05BB callvirt TypeSpec.Add
+  -> 05C2 callvirt System.Collections.IEnumerator.MoveNext
+  -> 05D4 callvirt System.IDisposable.Dispose
+  -> 05EE callvirt YukkuriMovieMaker.Commons.IGraphicsDevices.get_CacheProvider
+  -> 05F3 callvirt YukkuriMovieMaker.Plugin.CacheProvider.Clear
+
+### YukkuriMovieMaker.Player.Video.TimelineSource.UpdateResources(System.TimeSpan time) : Void
+  -> 0000 newobj <>c__DisplayClass25_0..ctor
+  -> 0015 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 001A callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 001F callvirt YukkuriMovieMaker.Project.VideoInfo.get_FPS
+  -> 0024 call YukkuriMovieMaker.Commons.FrameTime.TimeToFrame
+  -> 003B callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0046 callvirt YukkuriMovieMaker.Player.Video.IItemPicker.PickItems
+  -> 004B call System.Linq.Enumerable.ToList
+  -> 005B callvirt TypeSpec.get_Keys
+  -> 006C call System.Linq.Enumerable.Where
+  -> 0071 call System.Linq.Enumerable.ToList
+  -> 0076 callvirt TypeSpec.GetEnumerator
+  -> 0080 call TypeSpec.get_Current
+  -> 008D callvirt TypeSpec.get_Item
+  -> 0096 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.Dispose
+  -> 00A2 callvirt TypeSpec.Remove
+  -> 00B0 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Remove
+  -> 00B7 call TypeSpec.MoveNext
+  -> 00D4 call System.Linq.Enumerable.OfType
+  -> 00E5 call System.Linq.Enumerable.Where
+  -> 00EA call System.Linq.Enumerable.ToList
+  -> 00EF call System.Linq.ParallelEnumerable.AsParallel
+  -> 0113 call System.Linq.ParallelEnumerable.Where
+  -> 0124 call System.Linq.ParallelEnumerable.Select
+  -> 0129 call System.Linq.ParallelEnumerable.ToList
+  -> 013A callvirt TypeSpec.ForEach
+  -> 0145 callvirt TypeSpec.GetEnumerator
+  -> 0150 call TypeSpec.get_Current
+  -> 015D call TypeSpec.Deconstruct
+  -> 0164 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_ParentEffects
+  -> 0169 callvirt TypeSpec.Clear
+  -> 0170 call TypeSpec.MoveNext
+  -> 0193 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 019E callvirt YukkuriMovieMaker.Player.Video.IItemPicker.PickFaceItems
+  -> 01A3 call System.Linq.Enumerable.ToList
+  -> 01CE call System.Linq.Enumerable.Where
+  -> 01F2 call System.Linq.Enumerable.Select
+  -> 01F7 callvirt TypeSpec.GetEnumerator
+  -> 0205 callvirt TypeSpec.get_Current
+  -> 020A newobj <>c__DisplayClass25_1..ctor
+  -> 022F callvirt YukkuriMovieMaker.Project.Items.TachieItem.get_Character
+  -> 0247 call System.Linq.Enumerable.Where
+  -> 026B call System.Linq.Enumerable.OrderByDescending
+  -> 0276 call System.Linq.Enumerable.FirstOrDefault
+  -> 0282 call System.Linq.Enumerable.OfType
+  -> 0287 call System.Linq.Enumerable.FirstOrDefault
+  -> 0291 callvirt YukkuriMovieMaker.Player.Video.Items.TachieSource.set_ActiveVoice
+  -> 0298 callvirt YukkuriMovieMaker.Player.Video.Items.TachieSource.set_ActiveFaces
+  -> 02A8 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_ParentEffects
+  -> 02B4 callvirt YukkuriMovieMaker.Project.Items.IFaceItem.get_TachieFaceEffects
+  -> 02C6 call System.Linq.Enumerable.Select
+  -> 02CB callvirt TypeSpec.AddRange
+  -> 02D2 callvirt System.Collections.IEnumerator.MoveNext
+  -> 02E4 callvirt System.IDisposable.Dispose
+  -> 02F0 callvirt TypeSpec.GetEnumerator
+  -> 02F9 newobj <>c__DisplayClass25_2..ctor
+  -> 030A call TypeSpec.get_Current
+  -> 0317 call TypeSpec.Deconstruct
+  -> 0347 call YukkuriMovieMaker.Player.Video.TimelineSource.GetParentGroups
+  -> 0359 call System.Linq.Enumerable.SelectMany
+  -> 0360 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.get_ParentEffects
+  -> 0367 callvirt TypeSpec.AddRange
+  -> 036E call TypeSpec.MoveNext
+
+### YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.CreateFileAsync(YukkuriMovieMaker.Commons.ProgressMessage progressMessage, System.Threading.CancellationToken cancellationToken) : System.Threading.Tasks.Task
+  -> 0002 call System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create
+  -> 0035 call System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start
+  -> 0041 call System.Runtime.CompilerServices.AsyncTaskMethodBuilder.get_Task
+
+### YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.Render(YukkuriMovieMaker.Player.Video.TimelineSource videoSource, Vortice.Direct2D1.ID2D1Bitmap targetBitmap, Vortice.Direct2D1.ID2D1Bitmap readableBitmap, Int32 frame) : Void
+  -> 0006 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 0012 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0017 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 001E callvirt YukkuriMovieMaker.Project.VideoInfo.GetTimeFrom
+  -> 0024 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+  -> 002B callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0031 callvirt Vortice.Direct2D1.ID2D1RenderTarget.BeginDraw
+  -> 004B newobj Vortice.Mathematics.Color4..ctor
+  -> 0050 newobj TypeSpec..ctor
+  -> 0055 callvirt Vortice.Direct2D1.ID2D1RenderTarget.Clear
+  -> 005C callvirt YukkuriMovieMaker.Player.Video.TimelineSource.get_Output
+  -> 0067 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 006C callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 0071 callvirt YukkuriMovieMaker.Project.VideoInfo.get_Width
+  -> 0083 callvirt YukkuriMovieMaker.Project.Scene.get_Timeline
+  -> 0088 callvirt YukkuriMovieMaker.Project.Timeline.get_VideoInfo
+  -> 008D callvirt YukkuriMovieMaker.Project.VideoInfo.get_Height
+  -> 0099 newobj System.Numerics.Vector2..ctor
+  -> 00A3 callvirt Vortice.Direct2D1.ID2D1DeviceContext.DrawImage
+  -> 00A9 callvirt Vortice.Direct2D1.ID2D1RenderTarget.EndDraw
+  -> 00B0 callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 00B7 callvirt Vortice.Direct2D1.ID2D1Bitmap.CopyFromBitmap
+
+### YukkuriMovieMaker.Commons.CrossDeviceFrameBridge.Transfer(Vortice.Direct3D11.ID3D11Texture2D sourceTexture) : Vortice.Direct2D1.ID2D1Bitmap1
+  -> 0006 callvirt System.Threading.Lock.EnterScope
+  -> 0013 call System.ObjectDisposedException.ThrowIf
+  -> 0019 callvirt Vortice.Direct3D11.ID3D11Texture2D.get_Description
+  -> 002C newobj System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor
+  -> 0039 call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral
+  -> 0046 call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted
+  -> 004D call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear
+  -> 0057 newobj System.ArgumentException..ctor
+  -> 0069 newobj System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor
+  -> 0076 call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral
+  -> 0083 call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted
+  -> 008A call System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear
+  -> 0094 newobj System.ArgumentException..ctor
+  -> 00A0 callvirt Vortice.Direct2D1.ID2D1Multithread.Enter
+  -> 00B2 call YukkuriMovieMaker.Commons.CrossDeviceFrameBridge.EnsureSharedTexture
+  -> 00C0 callvirt Vortice.DXGI.IDXGIKeyedMutex.AcquireSync
+  -> 00CB callvirt YukkuriMovieMaker.Commons.IGraphicsDevices.get_D3D
+  -> 00D0 callvirt YukkuriMovieMaker.Commons.D3DDevices.get_DeviceContext
+  -> 00DC callvirt Vortice.Direct3D11.ID3D11DeviceContext.CopyResource
+  -> 00EB callvirt Vortice.DXGI.IDXGIKeyedMutex.ReleaseSync
+  -> 00F7 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 0103 newobj Vortice.DCommon.PixelFormat..ctor
+  -> 0113 call Vortice.Direct2D1.BitmapProperties1..ctor
+  -> 0126 newobj Vortice.Mathematics.SizeI..ctor
+  -> 0133 callvirt Vortice.Direct2D1.ID2D1DeviceContext.CreateBitmap
+  -> 0143 callvirt Vortice.DXGI.IDXGIKeyedMutex.AcquireSync
+  -> 014C callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0153 callvirt Vortice.Direct2D1.ID2D1RenderTarget.BeginDraw
+  -> 0166 callvirt Vortice.Direct2D1.ID2D1RenderTarget.DrawBitmap
+  -> 016D callvirt Vortice.Direct2D1.ID2D1RenderTarget.EndDraw
+  -> 0178 callvirt Vortice.Direct2D1.ID2D1DeviceContext.set_Target
+  -> 0185 callvirt Vortice.DXGI.IDXGIKeyedMutex.ReleaseSync
+  -> 0190 callvirt SharpGen.Runtime.DisposeBase.Dispose
+  -> 01AB call Scope.Dispose
+
+### YukkuriMovieMaker.Plugin.Tachie.ITachieSource.Update(System.TimeSpan tachieTime, System.TimeSpan tachieLength, System.TimeSpan faceTime, System.TimeSpan faceLength, YukkuriMovieMaker.Plugin.Tachie.ITachieCharacterParameter characterParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieItemParameter itemParameter, YukkuriMovieMaker.Plugin.Tachie.ITachieFaceParameter faceParameter, Double kuchipaku) : Void
+  -> 0005 newobj System.NotImplementedException..ctor
+
+### YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegD3D11VideoProcessor.ProcessFrame(IntPtr textureHandle, UInt32 arraySlice) : Boolean
+  -> 0007 call SharpGen.Runtime.CppObject.op_Equality
+  -> 0015 call SharpGen.Runtime.CppObject.op_Equality
+  -> 0029 call System.Runtime.InteropServices.Marshal.AddRef
+  -> 0030 newobj Vortice.Direct3D11.ID3D11Texture2D..ctor
+  -> 003E callvirt YukkuriMovieMaker.Commons.IGraphicsDevices.get_D3D
+  -> 0043 callvirt YukkuriMovieMaker.Commons.D3DDevices.get_VideoDevice
+  -> 004F callvirt YukkuriMovieMaker.Commons.IGraphicsDevices.get_D3D
+  -> 0054 callvirt YukkuriMovieMaker.Commons.D3DDevices.get_VideoContext
+  -> 005C call SharpGen.Runtime.CppObject.op_Equality
+  -> 0065 call SharpGen.Runtime.CppObject.op_Equality
+  -> 00B7 callvirt Vortice.Direct3D11.ID3D11VideoDevice.CreateVideoProcessorInputView
+  -> 00BF call SharpGen.Runtime.CppObject.op_Equality
+
+### YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource.Update(YukkuriMovieMaker.Player.Video.TachieSourceDescription desc) : Void
+  -> 0001 callvirt YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription.get_ItemPosition
+  -> 0006 callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 000D callvirt YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription.get_ItemDuration
+  -> 0012 callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 0019 callvirt YukkuriMovieMaker.Player.Video.TachieSourceDescription.get_Tachie
+  -> 001E callvirt YukkuriMovieMaker.Player.Video.TachieDescription.get_Faces
+  -> 0023 call System.Linq.Enumerable.FirstOrDefault
+  -> 0035 call YukkuriMovieMaker.Player.Video.TachieFaceDescription.get_ItemPosition
+  -> 003A callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 004D call YukkuriMovieMaker.Player.Video.TachieFaceDescription.get_ItemDuration
+  -> 0052 callvirt YukkuriMovieMaker.Player.Video.FrameTime.get_Time
+  -> 0059 callvirt YukkuriMovieMaker.Player.Video.TachieSourceDescription.get_Tachie
+  -> 005E callvirt YukkuriMovieMaker.Player.Video.TachieDescription.get_CharacterParameter
+  -> 0065 callvirt YukkuriMovieMaker.Player.Video.TachieSourceDescription.get_Tachie
+  -> 006A callvirt YukkuriMovieMaker.Player.Video.TachieDescription.get_ItemParameter
+  -> 0077 call YukkuriMovieMaker.Player.Video.TachieFaceDescription.get_FaceParameter
+  -> 007E callvirt YukkuriMovieMaker.Player.Video.TachieSourceDescription.get_VoiceVolume
+  -> 0086 callvirt YukkuriMovieMaker.Player.Video.TachieSourceDescription.get_MouthShape
+  -> 00A7 callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieItemParameter.get_IsHiddenWhenNoSpeech
+  -> 00BC call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource.Clear
+  -> 00CC callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieCharacterParameter.get_FilePath
+  -> 00DB callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_FilePath
+  -> 00E0 call System.String.op_Equality
+  -> 00E9 callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_IsEnabled
+  -> 00F6 callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_IsEnabled
+  -> 0101 callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieItemParameter.get_FilePath
+  -> 0106 call System.String.op_Equality
+  -> 0112 callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieItemParameter.get_EnableLayers
+  -> 011E callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_EnableLayers
+  -> 0135 call System.String.op_Inequality
+  -> 0153 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 0168 call System.IO.File.Exists
+  -> 0172 newobj PsdParser.PsdFile..ctor
+  -> 0188 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 0190 call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings.LoadFromPsdFilePath
+  -> 01A1 call YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder.Parse
+  -> 01B2 callvirt YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder.GetEnableItems
+  -> 01B7 call System.Linq.Enumerable.ToArray
+  -> 01BC newobj TypeSpec..ctor
+  -> 01C1 call System.Collections.Immutable.ImmutableList.Create
+  -> 01E2 callvirt YukkuriMovieMaker.Commons.DisposeCollector.RemoveAndDispose
+  -> 0208 call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource.Clear
+  -> 0236 callvirt YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder.SetEnableItems
+  -> 0241 callvirt YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder.GetActiveLayers
+  -> 0246 call System.Collections.Immutable.ImmutableList.ToImmutableList
+  -> 025C callvirt YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieCharacterParameter.get_MouthSensitivity
+  -> 026A call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_EyeAnimation
+  -> 0278 call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieFaceParameter.get_MouthAnimation
+  -> 027F call YukkuriMovieMaker.Plugin.Tachie.Psd.PsdTachieSource.ApplyAnimation
+  -> 0296 call System.String.op_Inequality
+  -> 02A7 callvirt TypeSpec.get_IsEmpty
+  -> 02C1 call System.Linq.Enumerable.SequenceEqual
+  -> 02D1 callvirt SharpGen.Runtime.DisposeBase.Dispose
+  -> 02E2 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Remove
+  -> 02EF callvirt YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder.SetActiveLayers
+  -> 0307 callvirt PsdParser.PsdFile.get_Header
+  -> 030C callvirt PsdParser.FileHeaderSection.get_Width
+  -> 0317 callvirt PsdParser.PsdFile.get_Header
+  -> 031C callvirt PsdParser.FileHeaderSection.get_Height
+  -> 0321 call YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFileSourcePlugin.CreateBitmap
+  -> 0330 callvirt YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext.get_DeviceContext
+  -> 033B call YukkuriMovieMaker.Commons.ID2D1DeviceContextEx.CreateEmptyBitmap
+  -> 0351 callvirt YukkuriMovieMaker.Commons.DisposeCollector.Collect
+  -> 0364 call SharpGen.Runtime.RawBool.op_Implicit
+  -> 0369 callvirt Vortice.Direct2D1.ID2D1Effect.SetInput
+  -> 037A callvirt Vortice.Direct2D1.ID2D1Bitmap.get_Size
+  -> 0383 call Vortice.Mathematics.Size.get_Width
+  -> 0395 callvirt Vortice.Direct2D1.ID2D1Bitmap.get_Size
+  -> 039E call Vortice.Mathematics.Size.get_Height
+  -> 03AA call System.Numerics.Matrix3x2.CreateTranslation
+  -> 03AF callvirt Vortice.Direct2D1.Effects.AffineTransform2D.set_TransformMatrix
+
+## Callers touching focus terms
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.EffectedItemSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void	=>	0002 call YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateSource
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.TimelineSource.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void	=>	0008 call YukkuriMovieMaker.Player.Video.TimelineSource.UpdateResources
+YukkuriMovieMaker.dll	YukkuriMovieMaker.ItemEditor.TimelineSourceAndDevices.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void	=>	0008 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.EffectedItemSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void	=>	0009 call YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateEffects
+YukkuriMovieMaker.dll	EffectedTimelineSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc, System.Collections.Generic.IEnumerable`1<YukkuriMovieMaker.Plugin.Effects.IVideoEffect> effects) : Void	=>	0017 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll	YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.MFHelper.CreateFromDXGIBuffer(YukkuriMovieMaker.Commons.CrossDeviceFrameBridge bridge, Vortice.MediaFoundation.IMFDXGIBuffer dxgiBuffer) : Vortice.Direct2D1.ID2D1Bitmap1	=>	001D callvirt YukkuriMovieMaker.Commons.CrossDeviceFrameBridge.Transfer
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Audio.TimelineSource.read(Single[] destBuffer, Int32 offset, Int32 count) : Int32	=>	0020 call YukkuriMovieMaker.Player.Audio.TimelineSource.OpenCloseResources
+YukkuriMovieMaker.dll	YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.Render(YukkuriMovieMaker.Player.Video.TimelineSource videoSource, Vortice.Direct2D1.ID2D1Bitmap targetBitmap, Vortice.Direct2D1.ID2D1Bitmap readableBitmap, Int32 frame) : Void	=>	0024 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Audio.TimelineSource.read(Single[] destBuffer, Int32 offset, Int32 count) : Int32	=>	0029 call YukkuriMovieMaker.Player.Audio.TimelineSource.ReadResources
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.Items.CompositeSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void	=>	0030 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.dll	<CreateMp4FileAsync>d__152.MoveNext() : Void	=>	003D callvirt YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.CreateFileAsync
+YukkuriMovieMaker.dll	<>c__DisplayClass24_0.<Update>b__1(System.Collections.Generic.KeyValuePair`2<YukkuriMovieMaker.Project.Items.IVideoItem, YukkuriMovieMaker.Player.Video.EffectedItemSource> x) : Void	=>	0049 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.Update
+YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll	YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegMfVideoProcessor.CreateD2DBitmapFromSample(Vortice.MediaFoundation.IMFSample sample) : Vortice.Direct2D1.ID2D1Bitmap1	=>	004E callvirt YukkuriMovieMaker.Commons.CrossDeviceFrameBridge.Transfer
+YukkuriMovieMaker.dll	<>c__DisplayClass12_2.<CreateFileAsync>b__3() : Void	=>	0057 call YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.Render
+YukkuriMovieMaker.dll	YukkuriMovieMaker.ItemEditor.EffectedItemSourceAndDevices.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void	=>	00A2 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.TimelineVideoPlayer.RenderCurrentFrameBitmap(YukkuriMovieMaker.Commons.IGraphicsDevicesAndContext devicesAndContext, Boolean alpha) : Vortice.Direct2D1.ID2D1Bitmap1	=>	00AB callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.EffectedItemSource.UpdateEffects(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription timelineItemSourceDescription) : Void	=>	0142 callvirt YukkuriMovieMaker.Player.Video.EffectedSourceOutput.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.TimelineVideoPlayer.<BeginVideoTask>b__83_0() : Void	=>	01F5 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll	YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegVideoFileSource.UploadFrameToBitmap(FFmpeg.AutoGen.AVFrame* src, Int64 sampleDurationTicks) : Void	=>	0201 callvirt YukkuriMovieMaker.Plugin.FileSource.FFmpeg.FFmpegD3D11VideoProcessor.ProcessFrame
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.TimelineVideoPlayer.<BeginVideoTask>b__83_0() : Void	=>	02A6 callvirt YukkuriMovieMaker.Player.Video.TimelineSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.TimelineSource.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void	=>	0393 callvirt YukkuriMovieMaker.Player.Video.EffectedItemSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.Items.TachieSource.Update(YukkuriMovieMaker.Player.Video.TimelineItemSourceDescription desc) : Void	=>	040C callvirt YukkuriMovieMaker.Plugin.Tachie.ITachieSource.Update
+YukkuriMovieMaker.dll	YukkuriMovieMaker.Player.Video.TimelineSource.Update(System.TimeSpan time, YukkuriMovieMaker.Player.Video.TimelineSourceUsage usage) : Void	=>	0429 call YukkuriMovieMaker.Player.Video.TimelineSource.DrawResource
+YukkuriMovieMaker.dll	<EncodeAsync>d__10.MoveNext() : Void	=>	0456 callvirt YukkuriMovieMaker.VideoFileWriter.VideoFileWriter.CreateFileAsync

@@ -1,0 +1,5 @@
+<Project>
+  <PropertyGroup>
+    <YMM4DirPath>$(MSBuildThisFileDirectory)一時ファイル\YukkuriMovieMaker_v4_Lite\</YMM4DirPath>
+  </PropertyGroup>
+</Project>

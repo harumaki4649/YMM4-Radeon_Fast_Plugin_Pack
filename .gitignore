@@ -1,0 +1,76 @@
+# IDE / editor
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.swp
+*~
+
+# .NET / Visual Studio build outputs
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+[Oo]ut/
+TestResult*/
+packages/
+*.nupkg
+*.snupkg
+*.cache
+*.log
+*.pdb
+*.mdb
+*.svclog
+*.opendb
+
+# Native build outputs
+*.obj
+*.idb
+*.ilk
+*.lib
+*.exp
+*.dll
+*.exe
+*.appx
+*.appxbundle
+*.msix
+*.msixbundle
+*.vcxproj.user
+
+# Temporary / local environment folders used in this repo
+.dotnet/
+.dotnet-home/
+.dotnet-local/
+.localappdata/
+AppData/
+一時ファイル/
+
+# Build caches
+artifacts/
+dist/
+tmp/
+temp/
+
+# Archives and downloaded bundles
+*.zip
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Keep source and documentation files tracked
+!**/README.md
+!**/LICENSE
+!**/THIRD_PARTY_NOTICES.txt
+src/RadeonFastFileSourcePlugin/YukkuriMovieMaker_v4_Lite/
+src/RadeonFastPsdTachiePlugin/YukkuriMovieMaker_v4_Lite/
+src/RadeonAmfPlugin/YukkuriMovieMaker_v4_Lite/

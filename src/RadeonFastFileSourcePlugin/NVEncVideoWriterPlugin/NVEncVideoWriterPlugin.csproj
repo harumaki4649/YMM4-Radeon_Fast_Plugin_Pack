@@ -1,0 +1,95 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UseWPF>false</UseWPF>
+    <AssemblyName>RadeonFastFileSourcePlugin</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+
+    <!-- PDB にソースのフルパスを含めない -->
+    <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
+    <PathMap>$(RepoRoot)=.</PathMap>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="RadeonFastFileSource\**\*.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="YukkuriMovieMaker.Plugin">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpGen.Runtime">
+      <HintPath>$(YMM4DirPath)SharpGen.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="SharpGen.Runtime.COM">
+      <HintPath>$(YMM4DirPath)SharpGen.Runtime.COM.dll</HintPath>
+    </Reference>
+    <Reference Include="Vortice.Direct2D1">
+      <HintPath>$(YMM4DirPath)Vortice.Direct2D1.dll</HintPath>
+    </Reference>
+    <Reference Include="Vortice.Direct3D11">
+      <HintPath>$(YMM4DirPath)Vortice.Direct3D11.dll</HintPath>
+    </Reference>
+    <Reference Include="Vortice.DirectX">
+      <HintPath>$(YMM4DirPath)Vortice.DirectX.dll</HintPath>
+    </Reference>
+    <Reference Include="Vortice.DXGI">
+      <HintPath>$(YMM4DirPath)Vortice.DXGI.dll</HintPath>
+    </Reference>
+    <Reference Include="Vortice.Mathematics">
+      <HintPath>$(YMM4DirPath)Vortice.Mathematics.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationFramework">
+      <HintPath>$(YMM4DirPath)PresentationFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore">
+      <HintPath>$(YMM4DirPath)PresentationCore.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase">
+      <HintPath>$(YMM4DirPath)WindowsBase.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.FileSource.FFmpeg">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.FileSource.FFmpeg.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.FileSource.MediaFoundation">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.FileSource.MediaFoundation.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.FileSource.Mp3">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.FileSource.Mp3.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.FileSource.WIC">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.FileSource.WIC.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\README.md" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\LICENSE" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!-- ビルド後に YMM4 のプラグインフォルダに dll をコピーする -->
+  <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build">
+    <PropertyGroup>
+      <Ymm4PluginDir>$(YMM4DirPath)user\plugin\$(AssemblyName)\</Ymm4PluginDir>
+    </PropertyGroup>
+    <MakeDir Directories="$(Ymm4PluginDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />
+    <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll')" />
+    <Copy SourceFiles="$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll') And !Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />
+    <ItemGroup>
+      <VipsRuntimeFiles Include="$(ProjectDir)..\vendor\vips-dev-8.18\bin\**\*.dll" Condition="Exists('$(ProjectDir)..\vendor\vips-dev-8.18\bin\libvips-42.dll')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(VipsRuntimeFiles)" DestinationFiles="@(VipsRuntimeFiles->'$(Ymm4PluginDir)%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" Condition="'@(VipsRuntimeFiles)' != ''" />
+    <Copy SourceFiles="$(ProjectDir)..\README.md" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\README.md')" />
+    <Copy SourceFiles="$(ProjectDir)..\LICENSE" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\LICENSE')" />
+    <Delete Files="$(Ymm4PluginDir)RadeonAmfPlugin.dll;$(Ymm4PluginDir)NVEncVideoWriterPlugin.dll" TreatErrorsAsWarnings="true" />
+  </Target>
+
+</Project>
