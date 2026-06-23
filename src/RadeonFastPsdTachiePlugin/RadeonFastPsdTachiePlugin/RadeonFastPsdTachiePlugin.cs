@@ -64,6 +64,22 @@ internal sealed class RadeonFastPsdTachieSource : ITachieSource2
     public void Update(TachieSourceDescription desc)
     {
         updateCount++;
+
+        // プレビュー/編集中は同一状態スキップを行わない。
+        // 内部の PsdTachieSource.Update は元々アクティブレイヤー差分を自前で検出して
+        // 重い D2D 再構築を避けるため、ここでのスキップによる高速化効果はわずかしかない。
+        // 一方で編集・コピペ中はソースインスタンスが生かされたまま内部の描画リソースが
+        // 作り替えられる/無効化されることがあり、lastKey が一致して inner.Update を
+        // スキップすると、空または古い Output が表示され続ける不具合が起きる
+        // （表情変化でキーが変わるか再起動するまで復帰しない）。
+        // 連続描画されるエンコード時は顕在化しないため、スキップはエンコード時のみに限定する。
+        if (desc.Usage == TimelineSourceUsage.Preview)
+        {
+            inner.Update(desc);
+            lastKey = null;
+            return;
+        }
+
         var key = TachieStateKey.Create(desc);
         if (lastKey == key)
         {
