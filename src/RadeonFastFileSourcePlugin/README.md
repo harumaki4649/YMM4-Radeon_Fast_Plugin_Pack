@@ -39,6 +39,11 @@ YMM4 の画像・音声・動画読み込みを速くするためのプラグイ
 - C# の前提は本家 YMM4 の設定に準じます。
 - 実際の参照先は `Directory.Build.props` でローカル配置に寄せています。
 
+## 設定ファイル
+
+設定はすべて `<YMM4インストール先>/user/RadeonFastFileSourcePlugin/settings.json` に JSON 形式で保存されます。  
+初回起動時にデフォルト値で自動生成されます。各設定の詳細は [SETTINGS.md](SETTINGS.md) を参照してください。
+
 ## ライセンス
 - このフォルダの自作コードは MIT License です。
 - 詳しくは [LICENSE](LICENSE) と [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt) を見てください。
