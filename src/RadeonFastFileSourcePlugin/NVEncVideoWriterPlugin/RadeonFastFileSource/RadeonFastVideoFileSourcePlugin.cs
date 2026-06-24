@@ -51,7 +51,11 @@ public sealed class RadeonFastVideoFileSourcePlugin : IVideoFileSourcePlugin
         {
             var nativeSource = NativeVideoFileSource.TryCreate(devices, filePath);
             if (nativeSource is not null)
+            {
+                if (settings.EnableVideoSourceCache)
+                    FastFileSourceLog.WriteDetailed($"Video source cache bypassed for native backend path=\"{filePath}\"");
                 return nativeSource;
+            }
         }
 
         var adaptivePreferMf = VideoBackendAdaptivePreference.ShouldPreferMediaFoundation(filePath, settings, out var adaptiveReason);
@@ -284,8 +288,7 @@ internal sealed class TimingVideoFileSource(
         FastFileSourceLog.Write($"Video dispose backend={backend} cached={fromCache} updates={updateCount} avg={avg:F3} ms max={maxUpdateMs:F3} ms slow={slowUpdateCount} jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
         if (fromCache && updateCount == 0)
         {
-            if (!VideoSourceCache.TryReturn(devices, filePath, backend, inner, cachedSourceUpdateCount, cachedSourceMaxUpdateMs, cachedSourceLastUpdateTime))
-                inner.Dispose();
+            inner.Dispose();
             return;
         }
 

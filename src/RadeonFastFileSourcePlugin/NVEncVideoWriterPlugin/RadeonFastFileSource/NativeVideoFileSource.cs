@@ -64,25 +64,6 @@ internal static class NativeVideoFileSource
 
         try
         {
-            var cached = VideoSourceCache.TryTake(devices, filePath, "AMF-D3D");
-            if (cached is not null)
-                return new TimingVideoFileSource(
-                    cached.Source,
-                    devices,
-                    filePath,
-                    "AMF-D3D",
-                    fromCache: true,
-                    cached.LastUpdateTime,
-                    cached.UpdateCount,
-                    cached.MaxUpdateMs,
-                    () =>
-                    {
-                        var recreated = new MFVideoFileSourcePlugin().CreateVideoFileSource(devices, filePath);
-                        if (recreated is null)
-                            throw new InvalidOperationException("MediaFoundation returned null");
-                        return recreated;
-                    });
-
             using var _ = FastFileSourceLog.Measure("Video AMF/D3D hardware create");
             var source = new MFVideoFileSourcePlugin().CreateVideoFileSource(devices, filePath);
             if (source is null)
@@ -113,19 +94,6 @@ internal static class NativeVideoFileSource
 
         try
         {
-            var cached = VideoSourceCache.TryTake(devices, filePath, "NativeProbe-FFmpeg");
-            if (cached is not null)
-                return new TimingVideoFileSource(
-                    cached.Source,
-                    devices,
-                    filePath,
-                    "NativeProbe-FFmpeg",
-                    fromCache: true,
-                    cached.LastUpdateTime,
-                    cached.UpdateCount,
-                    cached.MaxUpdateMs,
-                    () => new FFmpegVideoFileSource(devices, filePath));
-
             using var _ = FastFileSourceLog.Measure("Video native-probed FFmpeg create");
             var source = new FFmpegVideoFileSource(devices, filePath);
             FastFileSourceLog.Write(
