@@ -59,21 +59,13 @@ public sealed class RadeonFastVideoFileSourcePlugin : IVideoFileSourcePlugin
         }
 
         var adaptivePreferMf = VideoBackendAdaptivePreference.ShouldPreferMediaFoundation(filePath, settings, out var adaptiveReason);
-        var preferMediaFoundation = settings.PreferMediaFoundationVideo || adaptivePreferMf;
-        FastFileSourceLog.Write($"Video backend order preferMF={settings.PreferMediaFoundationVideo} adaptiveMF={adaptivePreferMf} adaptiveReason={adaptiveReason} path=\"{filePath}\"");
-
-        if (preferMediaFoundation)
-            return TryCreateMediaFoundation(devices, filePath) ?? TryCreateFFmpeg(devices, filePath);
+        FastFileSourceLog.Write($"Video backend order AMF→FFmpeg→MediaFoundation adaptiveMF={adaptivePreferMf} adaptiveReason={adaptiveReason} path=\"{filePath}\"");
 
         return TryCreateFFmpeg(devices, filePath) ?? TryCreateMediaFoundation(devices, filePath);
     }
 
     private static WarmupVideoSource? CreateWarmupSource(IGraphicsDevicesAndContext devices, string filePath)
     {
-        var settings = FastFileSourceSettingsStore.Current;
-        if (settings.PreferMediaFoundationVideo)
-            return CreateRawMediaFoundation(devices, filePath) ?? CreateRawFFmpeg(devices, filePath);
-
         return CreateRawFFmpeg(devices, filePath) ?? CreateRawMediaFoundation(devices, filePath);
     }
 
