@@ -47,6 +47,13 @@ public sealed class RadeonFastVideoFileSourcePlugin : IVideoFileSourcePlugin
         WarmupManager.EnsureVideoDecodeWarmup(devices, filePath, path => CreateWarmupSource(devices, path));
 
         var settings = FastFileSourceSettingsStore.Current;
+        if (settings.EnableNativeVideoDecoder)
+        {
+            var nativeSource = NativeVideoFileSource.TryCreate(devices, filePath);
+            if (nativeSource is not null)
+                return nativeSource;
+        }
+
         var adaptivePreferMf = VideoBackendAdaptivePreference.ShouldPreferMediaFoundation(filePath, settings, out var adaptiveReason);
         var preferMediaFoundation = settings.PreferMediaFoundationVideo || adaptivePreferMf;
         FastFileSourceLog.Write($"Video backend order preferMF={settings.PreferMediaFoundationVideo} adaptiveMF={adaptivePreferMf} adaptiveReason={adaptiveReason} path=\"{filePath}\"");

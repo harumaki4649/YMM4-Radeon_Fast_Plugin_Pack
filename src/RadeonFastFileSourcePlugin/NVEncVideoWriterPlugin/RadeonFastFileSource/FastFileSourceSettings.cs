@@ -52,6 +52,14 @@ internal sealed class FastFileSourceSettings
 
     public bool PreferMediaFoundationVideo { get; set; } = false;
 
+    public bool EnableNativeVideoDecoder { get; set; } = false;
+
+    public bool EnableAmfVideoDecoder { get; set; } = true;
+
+    public bool EnableFfmpegNativeVideoDecoder { get; set; } = true;
+
+    public bool NativeVideoDecoderFallbackToManaged { get; set; } = true;
+
     public bool EnableAdaptiveVideoBackend { get; set; } = true;
 
     public int AdaptiveVideoMinFileMB { get; set; } = 16;
@@ -64,7 +72,7 @@ internal sealed class FastFileSourceSettings
 
     public int AdaptiveVideoPreferenceSeconds { get; set; } = 600;
 
-    public bool EnableVideoSourceCache { get; set; } = false;
+    public bool EnableVideoSourceCache { get; set; } = true;
 
     public int VideoSourceCacheMaxEntries { get; set; } = 32;
 
@@ -323,6 +331,10 @@ internal static class FastFileSourceSettingsStore
             settings.ImageCacheMaxSingleFileMB,
             settings.ImageCpuDecodeCacheMaxMemoryMB,
             settings.ImageCpuDecodeCacheMaxSingleFileMB,
+            settings.EnableNativeVideoDecoder,
+            settings.EnableAmfVideoDecoder,
+            settings.EnableFfmpegNativeVideoDecoder,
+            settings.NativeVideoDecoderFallbackToManaged,
             settings.PreferMediaFoundationVideo,
             settings.EnableAdaptiveVideoBackend,
             settings.AdaptiveVideoMinFileMB,
@@ -409,7 +421,7 @@ internal static class FastFileSourceSettingsStore
             $"audioMemMB={settings.AudioCacheMaxMemoryMB} audioSingleMB={settings.AudioCacheMaxSingleFileMB} audioMaxSeconds={settings.AudioCacheMaxDurationSeconds:F0} " +
             $"audioMinOpen={settings.AudioCacheMinOpenCount} audioChunkSamples={settings.AudioCacheReadChunkSamples} audioDecoders={settings.AudioCacheMaxConcurrentDecodes} " +
             $"imageCache={settings.EnableImageBitmapCache} nativeImage={settings.EnableNativeImageDecoder} imageCpuCache={settings.EnableImageCpuDecodeCache} imageMemMB={settings.ImageCacheMaxMemoryMB} imageSingleMB={settings.ImageCacheMaxSingleFileMB} imageCpuMemMB={settings.ImageCpuDecodeCacheMaxMemoryMB} imageCpuSingleMB={settings.ImageCpuDecodeCacheMaxSingleFileMB} " +
-            $"preferMFVideo={settings.PreferMediaFoundationVideo} adaptiveVideo={settings.EnableAdaptiveVideoBackend} adaptiveVideoMinMB={settings.AdaptiveVideoMinFileMB} adaptiveVideoJumpMs={settings.AdaptiveVideoLargeJumpMs:F1} adaptiveVideoSlowMs={settings.AdaptiveVideoSlowUpdateMs:F1} adaptiveVideoSlowJumps={settings.AdaptiveVideoSlowJumpCount} adaptiveVideoPreferenceSec={settings.AdaptiveVideoPreferenceSeconds} videoSourceCache={settings.EnableVideoSourceCache} videoEntries={settings.VideoSourceCacheMaxEntries} videoProbeEntries={settings.VideoSourceCacheMaxProbeEntries} " +
+            $"nativeVideo={settings.EnableNativeVideoDecoder} nativeAmfVideo={settings.EnableAmfVideoDecoder} nativeFfmpegVideo={settings.EnableFfmpegNativeVideoDecoder} nativeVideoManagedFallback={settings.NativeVideoDecoderFallbackToManaged} preferMFVideo={settings.PreferMediaFoundationVideo} adaptiveVideo={settings.EnableAdaptiveVideoBackend} adaptiveVideoMinMB={settings.AdaptiveVideoMinFileMB} adaptiveVideoJumpMs={settings.AdaptiveVideoLargeJumpMs:F1} adaptiveVideoSlowMs={settings.AdaptiveVideoSlowUpdateMs:F1} adaptiveVideoSlowJumps={settings.AdaptiveVideoSlowJumpCount} adaptiveVideoPreferenceSec={settings.AdaptiveVideoPreferenceSeconds} videoSourceCache={settings.EnableVideoSourceCache} videoEntries={settings.VideoSourceCacheMaxEntries} videoProbeEntries={settings.VideoSourceCacheMaxProbeEntries} " +
             $"videoTtlSec={settings.VideoSourceCacheTtlSeconds} videoMinUpdates={settings.VideoSourceCacheMinUpdatesToKeep} videoSlowKeepMs={settings.VideoSourceCacheMinSlowUpdateToKeepMs:F1} videoLargeMB={settings.VideoSourceCachePreferLargeFileMB} " +
             $"videoMaxFirstSeekJumpSec={settings.VideoSourceCacheMaxFirstSeekJumpSeconds:F1} videoMinReuseAgeMs={settings.VideoSourceCacheMinReuseAgeMs} videoDeviceKey={settings.VideoSourceCacheUseDeviceContextKey} videoWaitWarmupMs={settings.VideoSourceCacheWaitForWarmupMs} " +
             $"warmup={settings.EnableProjectWarmup} warmAudio={settings.EnableAudioWarmup} warmImage={settings.EnableImageWarmup} warmVideoFile={settings.EnableVideoFileWarmup} imageDecodeWarmup={settings.EnableImageDecodeWarmup} imageDecodeTasks={settings.ImageDecodeWarmupMaxConcurrent} videoDecodeWarmup={settings.EnableVideoDecodeWarmup} videoDecodeTasks={settings.VideoDecodeWarmupMaxConcurrent} videoDecodeFrames={settings.VideoDecodeWarmupFrames} videoInitialFrameWarmup={settings.EnableVideoInitialFrameWarmup} videoDecodeQueuedPerCall={settings.VideoDecodeWarmupMaxQueuedPerCall} warmFiles={settings.WarmupMaxFiles} warmTasks={settings.WarmupMaxConcurrentTasks} warmImageMB={settings.WarmupMaxImageFileMB} warmVideoMB={settings.WarmupMaxVideoFileMB} warmBufferMB={settings.WarmupReadBufferMB} " +

@@ -261,7 +261,7 @@ public sealed class RadeonProjectWarmupToolViewModel : IToolViewModel, ITimeline
 
     private static string CreateSettingsText(FastFileSourceSettings settings)
     {
-        return $"設定: 動画ソースキャッシュ={OnOff(settings.EnableVideoSourceCache)} / 一時音声ネイティブ={OnOff(settings.EnableNativeTempAudioDecoder)} / 先読み={OnOff(settings.EnableProjectWarmup)} / PSD記録={OnOff(settings.EnablePsdStateManifest)}";
+        return $"設定: 動画ソースキャッシュ={OnOff(settings.EnableVideoSourceCache)} / 動画ネイティブ={OnOff(settings.EnableNativeVideoDecoder)}(AMF={OnOff(settings.EnableAmfVideoDecoder)}, FFmpeg={OnOff(settings.EnableFfmpegNativeVideoDecoder)}) / 一時音声ネイティブ={OnOff(settings.EnableNativeTempAudioDecoder)} / 先読み={OnOff(settings.EnableProjectWarmup)} / PSD記録={OnOff(settings.EnablePsdStateManifest)}";
     }
 
     private static string OnOff(bool value) => value ? "ON" : "OFF";
