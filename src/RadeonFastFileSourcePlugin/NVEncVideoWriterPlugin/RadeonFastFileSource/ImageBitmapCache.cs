@@ -38,7 +38,8 @@ internal static class ImageBitmapCache
                 return true;
         }
 
-        var fileSize = TryGetFileSize(filePath);
+        // key.Length is the file size already read by TryCreateKey — no second FileInfo needed.
+        var fileSize = key.Length;
         var maxSingleBytes = (long)settings.ImageCacheMaxSingleFileMB * 1024 * 1024;
         if (fileSize > maxSingleBytes)
         {
@@ -102,7 +103,8 @@ internal static class ImageBitmapCache
             }
         }
 
-        var fileSize = TryGetFileSize(filePath);
+        // key.Length is the file size already read by TryCreateKey — no second FileInfo needed.
+        var fileSize = key.Length;
         var maxSingleBytes = (long)settings.ImageCacheMaxSingleFileMB * 1024 * 1024;
         if (fileSize > maxSingleBytes)
         {
@@ -167,6 +169,7 @@ internal static class ImageBitmapCache
 
             Entries.Remove(entry.Key);
             totalBytes -= entry.Bytes;
+            KeyGates.TryRemove(entry.Key, out _);
             FastFileSourceLog.Write($"Image cache evict bytes={entry.Bytes} totalBytes={totalBytes} path=\"{entry.Key.FilePath}\"");
             entry.Bitmap.Dispose();
         }

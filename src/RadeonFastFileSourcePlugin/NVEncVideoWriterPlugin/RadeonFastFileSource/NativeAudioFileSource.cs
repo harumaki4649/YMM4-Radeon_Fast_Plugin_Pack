@@ -54,6 +54,7 @@ internal sealed class NativeAudioFileSource : IAudioFileSource
 {
     private IntPtr handle;
     private readonly string filePath;
+    private float[]? _scratch;
 
     public NativeAudioFileSource(string filePath)
     {
@@ -89,15 +90,26 @@ internal sealed class NativeAudioFileSource : IAudioFileSource
         if (offset < 0 || count < 0 || offset + count > destBuffer.Length)
             throw new ArgumentOutOfRangeException(nameof(count));
 
-        var scratch = offset == 0 ? destBuffer : new float[count];
-        var result = NativeMethods.Read(handle, scratch, count, out var read);
-        if (result != 0)
-            throw new InvalidOperationException($"miniaudio read failed ({result}): {NativeMethods.GetLastError()}");
+        if (offset == 0)
+        {
+            var result = NativeMethods.Read(handle, destBuffer, count, out var read);
+            if (result != 0)
+                throw new InvalidOperationException($"miniaudio read failed ({result}): {NativeMethods.GetLastError()}");
+            return read;
+        }
 
-        if (offset != 0 && read > 0)
-            Array.Copy(scratch, 0, destBuffer, offset, read);
+        // Reuse scratch buffer to avoid per-call heap allocation when reading into a non-zero offset.
+        if (_scratch is null || _scratch.Length < count)
+            _scratch = new float[count];
 
-        return read;
+        var result2 = NativeMethods.Read(handle, _scratch, count, out var read2);
+        if (result2 != 0)
+            throw new InvalidOperationException($"miniaudio read failed ({result2}): {NativeMethods.GetLastError()}");
+
+        if (read2 > 0)
+            Array.Copy(_scratch, 0, destBuffer, offset, read2);
+
+        return read2;
     }
 
     public void Seek(TimeSpan time)

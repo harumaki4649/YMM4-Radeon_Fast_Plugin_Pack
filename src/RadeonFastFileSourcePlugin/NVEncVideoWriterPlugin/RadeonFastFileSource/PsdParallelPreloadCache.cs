@@ -21,6 +21,30 @@ internal static class PsdParallelPreloadCache
     private static long failCount;
     private static long skipCount;
 
+    // Lazily-resolved types and methods — evaluated once, then reused on every subsequent preload.
+    // LazyThreadSafetyMode.ExecutionAndPublication guarantees only one thread runs the factory.
+    private static readonly Lazy<Type?> PsdFileTypeLazy = new(
+        () => ResolveType("PsdParser.PsdFile, PsdParser"),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly Lazy<Type?> PsdSettingsTypeLazy = new(
+        () => ResolveType("YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings, YukkuriMovieMaker.Plugin.Tachie.Psd"),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly Lazy<Type?> PsdFolderTypeLazy = new(
+        () => ResolveType("YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder, YukkuriMovieMaker.Plugin.FileSource.Psd"),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly Lazy<MethodInfo?> LoadSettingsMethodLazy = new(
+        () => PsdSettingsTypeLazy.Value?.GetMethod("LoadFromPsdFilePath", BindingFlags.Static | BindingFlags.Public),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+    private static readonly Lazy<MethodInfo?> ParseMethodLazy = new(
+        () => PsdFolderTypeLazy.Value?.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public),
+        LazyThreadSafetyMode.ExecutionAndPublication);
+
+    // Per-(Type, propertyName) PropertyInfo cache shared across all preload tasks.
+    private static readonly ConcurrentDictionary<(Type Type, string Name), PropertyInfo?> PropInfoCache = new();
+    // Per-Type MethodInfo caches for hot reflection paths inside layer enumeration.
+    private static readonly ConcurrentDictionary<Type, MethodInfo?> ToBytesMethodCache = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo?> GetEnableItemsMethodCache = new();
+
     public static void QueueFromStateKey(string? stateKey, string? keyHash, string reason)
     {
         if (string.IsNullOrWhiteSpace(stateKey))
@@ -154,20 +178,21 @@ internal static class PsdParallelPreloadCache
         var start = Stopwatch.GetTimestamp();
         try
         {
-            var psdFileType = ResolveType("PsdParser.PsdFile, PsdParser");
-            var psdSettingsType = ResolveType("YukkuriMovieMaker.Plugin.Tachie.Psd.PsdFileSettings, YukkuriMovieMaker.Plugin.Tachie.Psd");
-            var psdFolderType = ResolveType("YukkuriMovieMaker.Plugin.FileSource.Psd.PsdFolder, YukkuriMovieMaker.Plugin.FileSource.Psd");
+            // Use Lazy-cached types and methods to avoid repeated assembly scanning on every preload.
+            var psdFileType = PsdFileTypeLazy.Value;
+            var psdSettingsType = PsdSettingsTypeLazy.Value;
+            var psdFolderType = PsdFolderTypeLazy.Value;
             if (psdFileType is null || psdSettingsType is null || psdFolderType is null)
                 throw new InvalidOperationException($"PSD preload types missing psdFile={psdFileType is not null} settings={psdSettingsType is not null} folder={psdFolderType is not null}");
 
             var psdFile = Activator.CreateInstance(psdFileType, filePath)
                 ?? throw new InvalidOperationException("PsdFile create returned null");
 
-            var loadSettings = psdSettingsType.GetMethod("LoadFromPsdFilePath", BindingFlags.Static | BindingFlags.Public)
+            var loadSettings = LoadSettingsMethodLazy.Value
                 ?? throw new MissingMethodException(psdSettingsType.FullName, "LoadFromPsdFilePath");
             var psdSettings = loadSettings.Invoke(null, new object[] { filePath });
 
-            var parse = psdFolderType.GetMethod("Parse", BindingFlags.Static | BindingFlags.Public)
+            var parse = ParseMethodLazy.Value
                 ?? throw new MissingMethodException(psdFolderType.FullName, "Parse");
             var root = parse.Invoke(null, new[] { psdFile })
                 ?? throw new InvalidOperationException("PsdFolder.Parse returned null");
@@ -218,7 +243,10 @@ internal static class PsdParallelPreloadCache
     {
         try
         {
-            var method = root.GetType().GetMethod("GetEnableItems", BindingFlags.Instance | BindingFlags.Public);
+            var type = root.GetType();
+            var method = GetEnableItemsMethodCache.GetOrAdd(
+                type,
+                static t => t.GetMethod("GetEnableItems", BindingFlags.Instance | BindingFlags.Public));
             var result = method?.Invoke(root, null);
             if (result is System.Collections.IEnumerable enumerable)
             {
@@ -311,9 +339,11 @@ internal static class PsdParallelPreloadCache
     {
         try
         {
-            return target.GetType()
-                .GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?.GetValue(target);
+            var type = target.GetType();
+            var prop = PropInfoCache.GetOrAdd(
+                (type, name),
+                static k => k.Type.GetProperty(k.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+            return prop?.GetValue(target);
         }
         catch
         {
@@ -325,7 +355,10 @@ internal static class PsdParallelPreloadCache
     {
         try
         {
-            var method = buffer.GetType().GetMethod("ToBytes", BindingFlags.Instance | BindingFlags.Public);
+            var type = buffer.GetType();
+            var method = ToBytesMethodCache.GetOrAdd(
+                type,
+                static t => t.GetMethod("ToBytes", BindingFlags.Instance | BindingFlags.Public));
             if (method?.Invoke(buffer, null) is byte[] bytes)
                 return bytes.LongLength;
         }

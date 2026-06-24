@@ -12,6 +12,14 @@ internal static class PsdStateCache
     private static readonly ConcurrentDictionary<string, byte> KnownStates = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, StateStats> StateStatsMap = new(StringComparer.Ordinal);
     private static readonly ConcurrentDictionary<string, ExportStateRecord> ExportStates = new(StringComparer.Ordinal);
+    // Caches PropertyInfo lookups per (Type, property-name) to avoid repeating Type.GetProperty
+    // on every PSD frame update (called 12+ times per frame via reflection).
+    private static readonly ConcurrentDictionary<(Type Type, string Name), PropertyInfo?> PropInfoCache = new();
+    // Caches the file-stamp string (length:lastWrite) for each PSD path to avoid creating a
+    // FileInfo and hitting the OS on every frame. Entries expire after 2 seconds so that file
+    // changes are picked up promptly without constant disk access.
+    private static readonly ConcurrentDictionary<string, (string Stamp, long ExpiryTicks)> FileStampCache
+        = new(StringComparer.OrdinalIgnoreCase);
     private static long hitCount;
     private static long missCount;
     private static long preparedCount;
@@ -230,10 +238,16 @@ internal static class PsdStateCache
 
     private static string GetFileStamp(string path)
     {
+        var nowTicks = Environment.TickCount64;
+        if (FileStampCache.TryGetValue(path, out var cached) && cached.ExpiryTicks > nowTicks)
+            return cached.Stamp;
+
         try
         {
             var info = new FileInfo(path);
-            return $"{info.Length}:{info.LastWriteTimeUtc.Ticks}";
+            var stamp = $"{info.Length}:{info.LastWriteTimeUtc.Ticks}";
+            FileStampCache[path] = (stamp, nowTicks + 2_000); // 2-second TTL
+            return stamp;
         }
         catch
         {
@@ -311,9 +325,12 @@ internal static class PsdStateCache
 
         try
         {
-            return target.GetType()
-                .GetProperty(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                ?.GetValue(target);
+            var pi = PropInfoCache.GetOrAdd(
+                (target.GetType(), name),
+                static key => key.Type.GetProperty(
+                    key.Name,
+                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic));
+            return pi?.GetValue(target);
         }
         catch
         {

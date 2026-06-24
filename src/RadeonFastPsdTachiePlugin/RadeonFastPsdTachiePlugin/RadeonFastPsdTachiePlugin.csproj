@@ -1,65 +1,56 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <UseWPF>true</UseWPF>
-    <AssemblyName>RadeonAmfPlugin</AssemblyName>
+    <AssemblyName>RadeonFastPsdTachiePlugin</AssemblyName>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
 
-    <!-- PDB にソースのフルパスを含めない -->
     <RepoRoot>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\'))</RepoRoot>
     <PathMap>$(RepoRoot)=.</PathMap>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="YukkuriMovieMaker.Controls">
-      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Controls.dll</HintPath>
-    </Reference>
+    <Compile Include="RadeonFastPsdTachiePlugin.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="YukkuriMovieMaker.Plugin">
       <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.dll</HintPath>
     </Reference>
-    <Reference Include="SharpGen.Runtime">
-      <HintPath>$(YMM4DirPath)SharpGen.Runtime.dll</HintPath>
-    </Reference>
-    <Reference Include="SharpGen.Runtime.COM">
-      <HintPath>$(YMM4DirPath)SharpGen.Runtime.COM.dll</HintPath>
+    <Reference Include="YukkuriMovieMaker.Controls">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Controls.dll</HintPath>
     </Reference>
     <Reference Include="Vortice.Direct2D1">
       <HintPath>$(YMM4DirPath)Vortice.Direct2D1.dll</HintPath>
     </Reference>
-    <Reference Include="Vortice.Direct3D11">
-      <HintPath>$(YMM4DirPath)Vortice.Direct3D11.dll</HintPath>
-    </Reference>
     <Reference Include="Vortice.DirectX">
       <HintPath>$(YMM4DirPath)Vortice.DirectX.dll</HintPath>
-    </Reference>
-    <Reference Include="Vortice.DXGI">
-      <HintPath>$(YMM4DirPath)Vortice.DXGI.dll</HintPath>
     </Reference>
     <Reference Include="Vortice.Mathematics">
       <HintPath>$(YMM4DirPath)Vortice.Mathematics.dll</HintPath>
     </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.Tachie.Psd">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.Tachie.Psd.dll</HintPath>
+    </Reference>
+    <Reference Include="YukkuriMovieMaker.Plugin.FileSource.Psd">
+      <HintPath>$(YMM4DirPath)YukkuriMovieMaker.Plugin.FileSource.Psd.dll</HintPath>
+    </Reference>
+    <Reference Include="PsdParser">
+      <HintPath>$(YMM4DirPath)PsdParser.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
-  <ItemGroup>
-    <None Include="..\README.md" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\LICENSE" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="..\AmfNative\bin\$(Configuration)\AmfNative.dll" CopyToOutputDirectory="PreserveNewest" Condition="Exists('..\\AmfNative\\bin\\$(Configuration)\\AmfNative.dll')" />
-  </ItemGroup>
-
-  <!-- ビルド後に YMM4 のプラグインフォルダに dll をコピーする -->
   <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build">
     <PropertyGroup>
       <Ymm4PluginDir>$(YMM4DirPath)user\plugin\$(AssemblyName)\</Ymm4PluginDir>
-      <AmfNativeDll>$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
     </PropertyGroup>
     <MakeDir Directories="$(Ymm4PluginDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
-    <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(AmfNativeDll)')" />
     <Copy SourceFiles="$(ProjectDir)..\README.md" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\README.md')" />
     <Copy SourceFiles="$(ProjectDir)..\LICENSE" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\LICENSE')" />
-    <Delete Files="$(Ymm4PluginDir)NVEncVideoWriterPlugin.dll" TreatErrorsAsWarnings="true" />
   </Target>
 
 </Project>

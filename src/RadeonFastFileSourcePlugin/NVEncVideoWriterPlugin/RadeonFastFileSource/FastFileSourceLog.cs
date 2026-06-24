@@ -1,17 +1,26 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Channels;
 
 namespace RadeonFastFileSourcePlugin;
 
 internal static class FastFileSourceLog
 {
-    private static readonly object Gate = new();
     private static readonly string LogPath = Path.Combine(
         AppContext.BaseDirectory,
         "user",
         "log",
         "radeon_fast_filesource_log.txt");
+
+    private static readonly Channel<string> LogChannel = Channel.CreateUnbounded<string>(
+        new UnboundedChannelOptions { SingleReader = true, AllowSynchronousContinuations = false });
+
+    static FastFileSourceLog()
+    {
+        _ = Task.Run(RunLogWorker);
+    }
 
     [ModuleInitializer]
     public static void ModuleInit()
@@ -29,14 +38,8 @@ internal static class FastFileSourceLog
     {
         try
         {
-            var dir = Path.GetDirectoryName(LogPath);
-            if (!string.IsNullOrWhiteSpace(dir))
-                Directory.CreateDirectory(dir);
-
-            lock (Gate)
-            {
-                File.AppendAllText(LogPath, $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {message}{Environment.NewLine}");
-            }
+            var line = $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {message}{Environment.NewLine}";
+            LogChannel.Writer.TryWrite(line);
         }
         catch
         {
@@ -62,6 +65,35 @@ internal static class FastFileSourceLog
     public static IDisposable Measure(string scope)
     {
         return new ScopeTimer(scope);
+    }
+
+    private static async Task RunLogWorker()
+    {
+        var reader = LogChannel.Reader;
+        try
+        {
+            while (await reader.WaitToReadAsync().ConfigureAwait(false))
+            {
+                var dir = Path.GetDirectoryName(LogPath);
+                if (!string.IsNullOrWhiteSpace(dir))
+                    Directory.CreateDirectory(dir);
+
+                using var stream = new FileStream(
+                    LogPath,
+                    FileMode.Append,
+                    FileAccess.Write,
+                    FileShare.ReadWrite,
+                    bufferSize: 4096);
+                while (reader.TryRead(out var line))
+                {
+                    stream.Write(Encoding.UTF8.GetBytes(line));
+                }
+            }
+        }
+        catch
+        {
+            // Background logging must never crash the host process.
+        }
     }
 
     private sealed class ScopeTimer(string scope) : IDisposable

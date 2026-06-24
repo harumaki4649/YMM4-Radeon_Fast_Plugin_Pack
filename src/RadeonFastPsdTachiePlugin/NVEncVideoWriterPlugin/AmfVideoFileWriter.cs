@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,14 +21,16 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
     private readonly VideoInfo _videoInfo;
     private readonly AmfSettings _settings;
     private IntPtr _encoderHandle = IntPtr.Zero;
-    private bool _disposed;
-    private bool _hasFatalError;
+    private volatile bool _disposed;
+    private volatile bool _hasFatalError;
     private readonly object _encodeLock = new();
     private readonly object _profileLock = new();
     private readonly object _d3dLock = new();
     private BlockingCollection<QueuedVideoFrame>? _videoQueue;
     private Task? _videoWorker;
-    private Exception? _workerException;
+    private volatile Exception? _workerException;
+    private PropertyInfo? _resolvedChannelsProp;
+    private bool _channelsPropResolved;
     private long _lastVideoStartTick;
     private long _videoFrameIndex;
     private int _lastGc0Count;
@@ -325,10 +328,7 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
                         throw new InvalidOperationException("Radeon AMF エンコーダが初期化されていません。");
                     }
 
-                    lock (_d3dLock)
-                    {
-                        result = AmfNativeMethods.AmfEncode(_encoderHandle, texture.NativePointer);
-                    }
+                    result = AmfNativeMethods.AmfEncode(_encoderHandle, texture.NativePointer);
                 }
 
                 var nativeMs = ElapsedMs(nativeStartTick, Stopwatch.GetTimestamp());
@@ -407,11 +407,11 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
         AddManagedAudioProfile(samples.Length, nativeMs);
         if (result == 0)
         {
-            FailFast();
+            ThrowFatalError();
         }
     }
 
-    private void FailFast()
+    private void ThrowFatalError()
     {
         _hasFatalError = true;
         throw new InvalidOperationException(GetNativeError());
@@ -634,17 +634,22 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
 
     private int ResolveAudioChannels()
     {
-        const int fallback = 2;
-        var type = _videoInfo.GetType();
-        var prop = type.GetProperty("Channels")
-            ?? type.GetProperty("ChannelCount")
-            ?? type.GetProperty("AudioChannels")
-            ?? type.GetProperty("AudioChannelCount");
-        if (prop?.GetValue(_videoInfo) is int value && value > 0)
+        if (!_channelsPropResolved)
+        {
+            var type = _videoInfo.GetType();
+            _resolvedChannelsProp = type.GetProperty("Channels")
+                ?? type.GetProperty("ChannelCount")
+                ?? type.GetProperty("AudioChannels")
+                ?? type.GetProperty("AudioChannelCount");
+            _channelsPropResolved = true;
+        }
+
+        if (_resolvedChannelsProp?.GetValue(_videoInfo) is int value && value > 0)
         {
             return value;
         }
-        return fallback;
+
+        return 2;
     }
 
     private int GetTargetBitrateKbps()

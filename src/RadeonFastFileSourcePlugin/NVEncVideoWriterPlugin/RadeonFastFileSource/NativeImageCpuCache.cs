@@ -7,6 +7,9 @@ internal static class NativeImageCpuCache
     private static readonly object Gate = new();
     private static readonly ConcurrentDictionary<ImageCpuCacheKey, object> KeyGates = new();
     private static readonly Dictionary<ImageCpuCacheKey, CacheEntry> Entries = new();
+    // Keys whose decoded size exceeded the single-file limit. Persisted so subsequent calls
+    // skip the expensive libvips decode and fall back to WIC instead of repeating the work.
+    private static readonly HashSet<ImageCpuCacheKey> OversizedKeys = new();
     private static long totalBytes;
 
     public static bool TryGetOrDecode(string filePath, string reason, out DecodedNativeImage image)
@@ -47,6 +50,14 @@ internal static class NativeImageCpuCache
                     FastFileSourceLog.Write($"Image CPU decode cache hit-wait reason={reason} hits={cached.HitCount} bytes={cached.Bytes} totalBytes={totalBytes} size={image.Width}x{image.Height} path=\"{filePath}\"");
                     return true;
                 }
+
+                // Negative cache: if a previous decode revealed this file exceeds the size
+                // limit, skip the expensive libvips decode on every subsequent access.
+                if (OversizedKeys.Contains(key))
+                {
+                    FastFileSourceLog.WriteDetailed($"Image CPU decode cache skip reason=known-oversized path=\"{filePath}\"");
+                    return false;
+                }
             }
 
             if (!NativeImageBitmapFactory.TryDecodeToCpu(filePath, out var decoded))
@@ -55,6 +66,7 @@ internal static class NativeImageCpuCache
             var maxSingleBytes = (long)settings.ImageCpuDecodeCacheMaxSingleFileMB * 1024 * 1024;
             if (decoded.Bytes > maxSingleBytes)
             {
+                lock (Gate) { OversizedKeys.Add(key); }
                 FastFileSourceLog.Write($"Image CPU decode cache skip reason=single-limit bytes={decoded.Bytes} limit={maxSingleBytes} path=\"{filePath}\"");
                 image = decoded;
                 return true;
@@ -109,6 +121,7 @@ internal static class NativeImageCpuCache
 
             Entries.Remove(entry.Key);
             totalBytes -= entry.Bytes;
+            KeyGates.TryRemove(entry.Key, out _);
             FastFileSourceLog.Write($"Image CPU decode cache evict bytes={entry.Bytes} totalBytes={totalBytes} path=\"{entry.Key.FilePath}\"");
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using Vortice.Direct2D1;
@@ -18,9 +19,11 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
     private readonly VideoInfo _videoInfo;
     private readonly AmfSettings _settings;
     private IntPtr _encoderHandle = IntPtr.Zero;
-    private bool _disposed;
-    private bool _hasFatalError;
+    private volatile bool _disposed;
+    private volatile bool _hasFatalError;
     private readonly object _encodeLock = new();
+    private PropertyInfo? _resolvedChannelsProp;
+    private bool _channelsPropResolved;
     private long _lastVideoStartTick;
     private long _profileWindowStartTick;
     private long _profileFrames;
@@ -104,7 +107,7 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
             nativeMs = ElapsedMs(nativeStartTick, Stopwatch.GetTimestamp());
             if (result == 0)
             {
-                FailFast();
+                ThrowFatalError();
             }
         }
         AddManagedProfile(intervalMs, textureMs, nativeMs, ElapsedMs(videoStartTick, Stopwatch.GetTimestamp()));
@@ -203,11 +206,11 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
         var result = AmfNativeMethods.AmfWriteAudio(_encoderHandle, samples, samples.Length, sampleRate, channels);
         if (result == 0)
         {
-            FailFast();
+            ThrowFatalError();
         }
     }
 
-    private void FailFast()
+    private void ThrowFatalError()
     {
         _hasFatalError = true;
         throw new InvalidOperationException(GetNativeError());
@@ -289,17 +292,22 @@ internal sealed class AmfVideoFileWriter : IVideoFileWriter2, IDisposable
 
     private int ResolveAudioChannels()
     {
-        const int fallback = 2;
-        var type = _videoInfo.GetType();
-        var prop = type.GetProperty("Channels")
-            ?? type.GetProperty("ChannelCount")
-            ?? type.GetProperty("AudioChannels")
-            ?? type.GetProperty("AudioChannelCount");
-        if (prop?.GetValue(_videoInfo) is int value && value > 0)
+        if (!_channelsPropResolved)
+        {
+            var type = _videoInfo.GetType();
+            _resolvedChannelsProp = type.GetProperty("Channels")
+                ?? type.GetProperty("ChannelCount")
+                ?? type.GetProperty("AudioChannels")
+                ?? type.GetProperty("AudioChannelCount");
+            _channelsPropResolved = true;
+        }
+
+        if (_resolvedChannelsProp?.GetValue(_videoInfo) is int value && value > 0)
         {
             return value;
         }
-        return fallback;
+
+        return 2;
     }
 
     private int GetTargetBitrateKbps()

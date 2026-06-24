@@ -353,6 +353,9 @@ internal static class VideoBackendAdaptivePreference
         var now = DateTime.UtcNow;
         lock (Gate)
         {
+            if (States.Count > 200)
+                TrimStatesLocked(now);
+
             if (!States.TryGetValue(key, out var state))
             {
                 state = new State();
@@ -385,6 +388,18 @@ internal static class VideoBackendAdaptivePreference
                 }
             }
         }
+    }
+
+    private static void TrimStatesLocked(DateTime now)
+    {
+        var toRemove = States
+            .Where(pair =>
+                pair.Value.PreferMediaFoundationUntilUtc < now &&
+                pair.Value.SuppressMediaFoundationUntilUtc < now)
+            .Select(pair => pair.Key)
+            .ToList();
+        foreach (var k in toRemove)
+            States.Remove(k);
     }
 
     private static bool IsEligible(string filePath, FastFileSourceSettings settings, out string key, out double sizeMB)

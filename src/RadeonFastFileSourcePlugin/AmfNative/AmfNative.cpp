@@ -1757,7 +1757,9 @@ namespace
         const auto usage = state->qualityPreset >= 2
             ? AMF_VIDEO_ENCODER_USAGE_HIGH_QUALITY
             : AMF_VIDEO_ENCODER_USAGE_TRANSCODING;
-        const auto rateControl = state->rateControlMode == 0
+        const auto rateControl = state->preAnalysis
+            ? AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR
+            : state->rateControlMode == 0
             ? AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_CBR
             : AMF_VIDEO_ENCODER_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR;
 
@@ -1780,7 +1782,9 @@ namespace
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_B_PIC_PATTERN, static_cast<amf_int64>(0));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_B_REFERENCE_ENABLE, static_cast<amf_bool>(false));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_ADAPTIVE_MINIGOP, static_cast<amf_bool>(false));
-        state->encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0));
+        // PRE_ANALYSIS_ENABLE needs lookahead buffering; LOWLATENCY_MODE flushes too
+        // aggressively and can make SubmitInput spin on AMF_INPUT_FULL.
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0 && !state->preAnalysis));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_ENABLE_VBAQ, static_cast<amf_bool>(state->enableVbaq));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HIGH_MOTION_QUALITY_BOOST_ENABLE, static_cast<amf_bool>(state->highMotionQualityBoost));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_PRE_ANALYSIS_ENABLE, static_cast<amf_bool>(state->preAnalysis));
@@ -1797,7 +1801,9 @@ namespace
         const auto usage = state->qualityPreset >= 2
             ? AMF_VIDEO_ENCODER_HEVC_USAGE_HIGH_QUALITY
             : AMF_VIDEO_ENCODER_HEVC_USAGE_TRANSCODING;
-        const auto rateControl = state->rateControlMode == 0
+        const auto rateControl = state->preAnalysis
+            ? AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR
+            : state->rateControlMode == 0
             ? AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_CBR
             : AMF_VIDEO_ENCODER_HEVC_RATE_CONTROL_METHOD_PEAK_CONSTRAINED_VBR;
 
@@ -1818,7 +1824,7 @@ namespace
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_NUM_GOPS_PER_IDR, static_cast<amf_int64>(1));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE, static_cast<amf_int64>(AMF_VIDEO_ENCODER_HEVC_HEADER_INSERTION_MODE_IDR_ALIGNED));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_MAX_NUM_REFRAMES, static_cast<amf_int64>(1));
-        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0));
+        state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_LOWLATENCY_MODE, static_cast<amf_bool>(state->qualityPreset <= 0 && !state->preAnalysis));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_ENABLE_VBAQ, static_cast<amf_bool>(state->enableVbaq));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_HIGH_MOTION_QUALITY_BOOST_ENABLE, static_cast<amf_bool>(state->highMotionQualityBoost));
         state->encoder->SetProperty(AMF_VIDEO_ENCODER_HEVC_PRE_ANALYSIS_ENABLE, static_cast<amf_bool>(state->preAnalysis));
@@ -2421,7 +2427,7 @@ int AmfWriteAudio(void* handle, const float* samples, int sampleCount, int sampl
     {
         float v = samples[i];
         v = ClampFloat(v, -1.0f, 1.0f);
-        int16_t s = static_cast<int16_t>(v * 32767.0f);
+        int16_t s = static_cast<int16_t>(std::clamp(static_cast<int>(v * 32768.0f), -32768, 32767));
         state->audioPcmBuffer.push_back(s);
     }
 

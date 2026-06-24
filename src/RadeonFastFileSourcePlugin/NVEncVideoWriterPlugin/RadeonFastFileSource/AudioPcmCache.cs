@@ -324,6 +324,11 @@ internal static class AudioPcmCache
             decodeGate = new SemaphoreSlim(size, size);
             decodeGateSize = size;
             FastFileSourceLog.Write($"Audio cache decode concurrency={size}");
+            // The old gate is intentionally not Disposed: threads that captured a reference
+            // before this replacement may still be inside gate.Wait() or gate.Release().
+            // Calling Dispose() while a thread is blocked in Wait() throws
+            // ObjectDisposedException and breaks the decode pipeline.
+            // The abandoned semaphore is collected by the GC finalizer.
             return decodeGate;
         }
     }
@@ -413,7 +418,7 @@ internal static class AudioPcmCache
 
         public TimeSpan Duration { get; } = duration;
 
-        public long Bytes { get; } = (long)samples.Length * sizeof(float);
+        public long Bytes { get; } = (long)sampleCount * sizeof(float);
 
         public double SamplesPerSecond { get; } = duration.TotalSeconds > 0
             ? sampleCount / duration.TotalSeconds

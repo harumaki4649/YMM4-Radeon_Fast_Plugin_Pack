@@ -1,11 +1,14 @@
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Channels;
 using Vortice.Direct2D1;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Player.Video;
@@ -73,7 +76,7 @@ internal sealed class RadeonFastPsdTachieSource : ITachieSource2
         // スキップすると、空または古い Output が表示され続ける不具合が起きる
         // （表情変化でキーが変わるか再起動するまで復帰しない）。
         // 連続描画されるエンコード時は顕在化しないため、スキップはエンコード時のみに限定する。
-        if (desc.Usage == TimelineSourceUsage.Preview)
+        if (desc.Usage != TimelineSourceUsage.Exporting)
         {
             inner.Update(desc);
             lastKey = null;
@@ -89,9 +92,9 @@ internal sealed class RadeonFastPsdTachieSource : ITachieSource2
             return;
         }
 
-        var start = System.Diagnostics.Stopwatch.GetTimestamp();
+        var start = Stopwatch.GetTimestamp();
         inner.Update(desc);
-        var elapsedMs = System.Diagnostics.Stopwatch.GetElapsedTime(start).TotalMilliseconds;
+        var elapsedMs = Stopwatch.GetElapsedTime(start).TotalMilliseconds;
         totalUpdateMs += elapsedMs;
         maxUpdateMs = Math.Max(maxUpdateMs, elapsedMs);
         lastKey = key;
@@ -126,6 +129,8 @@ internal sealed class RadeonFastPsdTachieSource : ITachieSource2
 
 internal static class TachieStateKey
 {
+    private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropCache = new();
+
     public static string Create(TachieSourceDescription desc)
     {
         var builder = new StringBuilder(512);
@@ -146,6 +151,15 @@ internal static class TachieStateKey
         return builder.ToString();
     }
 
+    private static PropertyInfo[] GetCachedProps(Type type)
+    {
+        return PropCache.GetOrAdd(type, static t =>
+            t.GetProperties(BindingFlags.Instance | BindingFlags.Public)
+             .Where(p => p.CanRead && p.GetIndexParameters().Length == 0 && p.Name != "HasErrors")
+             .OrderBy(p => p.Name)
+             .ToArray());
+    }
+
     private static void AppendObject(StringBuilder builder, string name, object? value)
     {
         if (value is null)
@@ -155,14 +169,8 @@ internal static class TachieStateKey
         }
 
         builder.Append(name).Append("Type=").Append(value.GetType().FullName).Append(';');
-        foreach (var prop in value.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public).OrderBy(p => p.Name))
+        foreach (var prop in GetCachedProps(value.GetType()))
         {
-            if (!prop.CanRead || prop.GetIndexParameters().Length != 0)
-                continue;
-
-            if (prop.Name == "HasErrors")
-                continue;
-
             object? propValue;
             try
             {
@@ -213,23 +221,59 @@ internal static class TachieStateKey
 
 internal static class FastPsdTachieLog
 {
-    private static readonly object Gate = new();
+    private static readonly string LogPath = Path.Combine(
+        AppContext.BaseDirectory,
+        "user",
+        "log",
+        "radeon_fast_psd_tachie_log.txt");
+
+    private static readonly Channel<string> LogChannel = Channel.CreateUnbounded<string>(
+        new UnboundedChannelOptions { SingleReader = true, AllowSynchronousContinuations = false });
+
+    static FastPsdTachieLog()
+    {
+        _ = Task.Run(RunLogWorker);
+    }
 
     public static void Write(string message)
     {
         try
         {
-            var path = Path.Combine(AppContext.BaseDirectory, "user", "log", "radeon_fast_psd_tachie_log.txt");
-            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             var line = $"[{DateTime.Now:yyyy/MM/dd HH:mm:ss.fff}] {message}{Environment.NewLine}";
-            lock (Gate)
-            {
-                File.AppendAllText(path, line, Encoding.UTF8);
-            }
+            LogChannel.Writer.TryWrite(line);
         }
         catch
         {
             // Logging must never affect rendering.
+        }
+    }
+
+    private static async Task RunLogWorker()
+    {
+        var reader = LogChannel.Reader;
+        try
+        {
+            while (await reader.WaitToReadAsync().ConfigureAwait(false))
+            {
+                var dir = Path.GetDirectoryName(LogPath);
+                if (!string.IsNullOrWhiteSpace(dir))
+                    Directory.CreateDirectory(dir);
+
+                using var stream = new FileStream(
+                    LogPath,
+                    FileMode.Append,
+                    FileAccess.Write,
+                    FileShare.ReadWrite,
+                    bufferSize: 4096);
+                while (reader.TryRead(out var line))
+                {
+                    stream.Write(Encoding.UTF8.GetBytes(line));
+                }
+            }
+        }
+        catch
+        {
+            // Background logging must never crash the host process.
         }
     }
 }

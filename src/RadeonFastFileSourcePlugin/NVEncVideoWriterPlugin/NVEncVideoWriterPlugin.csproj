@@ -77,9 +77,11 @@
   <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build">
     <PropertyGroup>
       <Ymm4PluginDir>$(YMM4DirPath)user\plugin\$(AssemblyName)\</Ymm4PluginDir>
+      <AmfNativeDll>$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
     </PropertyGroup>
     <MakeDir Directories="$(Ymm4PluginDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
+    <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(AmfNativeDll)')" />
     <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />
     <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll')" />
     <Copy SourceFiles="$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll') And !Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />

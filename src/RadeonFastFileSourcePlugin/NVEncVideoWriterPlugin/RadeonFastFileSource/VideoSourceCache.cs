@@ -8,7 +8,7 @@ internal static class VideoSourceCache
     private static readonly object Gate = new();
     private static readonly Dictionary<VideoSourceCacheKey, List<Entry>> Entries = new();
     private static readonly HashSet<string> DeviceMismatchLogged = new(StringComparer.OrdinalIgnoreCase);
-    private static bool disabledCacheCleared = true;
+    private static volatile bool disabledCacheCleared = true;
 
     public static CachedVideoSourceLease? TryTake(IGraphicsDevicesAndContext devices, string filePath, string backend)
     {
@@ -144,35 +144,38 @@ internal static class VideoSourceCache
         if (!TryCreateKey(devices, filePath, backend, out var key))
             return false;
 
+        // Read source.Duration outside the shared lock: the property may internally call
+        // COM/MediaFoundation APIs that can block for an unpredictable amount of time,
+        // and holding Gate during that window serialises all VideoSourceCache callers.
+        TimeSpan duration;
+        try
+        {
+            duration = source.Duration;
+        }
+        catch (Exception ex)
+        {
+            FastFileSourceLog.Write(
+                $"Video source cache reject backend={backend} reason=duration-failed error={ex.GetType().Name}: {ex.Message} updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
+            return false;
+        }
+
+        if (duration <= TimeSpan.Zero)
+        {
+            FastFileSourceLog.Write(
+                $"Video source cache reject backend={backend} reason=invalid-duration duration={duration} updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
+            return false;
+        }
+
+        if (updateCount <= 0)
+        {
+            FastFileSourceLog.Write(
+                $"Video source cache reject backend={backend} reason=no-updates updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
+            return false;
+        }
+
         lock (Gate)
         {
             EvictExpiredLocked(settings);
-
-            TimeSpan duration;
-            try
-            {
-                duration = source.Duration;
-            }
-            catch (Exception ex)
-            {
-                FastFileSourceLog.Write(
-                    $"Video source cache reject backend={backend} reason=duration-failed error={ex.GetType().Name}: {ex.Message} updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
-                return false;
-            }
-
-            if (duration <= TimeSpan.Zero)
-            {
-                FastFileSourceLog.Write(
-                    $"Video source cache reject backend={backend} reason=invalid-duration duration={duration} updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
-                return false;
-            }
-
-            if (updateCount <= 0)
-            {
-                FastFileSourceLog.Write(
-                    $"Video source cache reject backend={backend} reason=no-updates updates={updateCount} bytes={key.Length} path=\"{filePath}\"");
-                return false;
-            }
 
             var isProbe = updateCount < settings.VideoSourceCacheMinUpdatesToKeep;
             var keepSlowProbe = isProbe && maxUpdateMs >= settings.VideoSourceCacheMinSlowUpdateToKeepMs;
@@ -245,6 +248,9 @@ internal static class VideoSourceCache
 
     private static void EvictExpiredLocked(FastFileSourceSettings settings)
     {
+        if (Entries.Count == 0)
+            return;
+
         foreach (var pair in Entries.ToArray())
         {
             var list = pair.Value;
@@ -267,7 +273,8 @@ internal static class VideoSourceCache
     private static void EvictOverflowLocked(FastFileSourceSettings settings)
     {
         var maxEntries = settings.VideoSourceCacheMaxEntries;
-        while (CountEntriesLocked() > maxEntries)
+        var count = CountEntriesLocked();
+        while (count > maxEntries)
         {
             var victim = Entries
                 .SelectMany(pair => pair.Value.Select((entry, index) => new { pair.Key, Entry = entry, Index = index }))
@@ -281,8 +288,9 @@ internal static class VideoSourceCache
             var list = Entries[victim.Key];
             list.RemoveAt(victim.Index);
             victim.Entry.Source.Dispose();
+            count--;
             FastFileSourceLog.Write(
-                $"Video source cache evict backend={victim.Entry.Key.Backend} reason=overflow entries={CountEntriesLocked()} updates={victim.Entry.UpdateCount} bytes={victim.Entry.Key.Length} score={KeepScore(victim.Entry, settings):F1} path=\"{victim.Entry.Key.FilePath}\"");
+                $"Video source cache evict backend={victim.Entry.Key.Backend} reason=overflow entries={count} updates={victim.Entry.UpdateCount} bytes={victim.Entry.Key.Length} score={KeepScore(victim.Entry, settings):F1} path=\"{victim.Entry.Key.FilePath}\"");
             if (list.Count == 0)
                 Entries.Remove(victim.Key);
         }
@@ -294,7 +302,8 @@ internal static class VideoSourceCache
         if (maxProbeEntries <= 0)
             return;
 
-        while (CountProbeEntriesLocked() > maxProbeEntries)
+        var probeCount = CountProbeEntriesLocked();
+        while (probeCount > maxProbeEntries)
         {
             var victim = Entries
                 .SelectMany(pair => pair.Value.Select((entry, index) => new { pair.Key, Entry = entry, Index = index }))
@@ -309,8 +318,9 @@ internal static class VideoSourceCache
             var list = Entries[victim.Key];
             list.RemoveAt(victim.Index);
             victim.Entry.Source.Dispose();
+            probeCount--;
             FastFileSourceLog.Write(
-                $"Video source cache evict backend={victim.Entry.Key.Backend} reason=probe-overflow probeEntries={CountProbeEntriesLocked()} updates={victim.Entry.UpdateCount} maxUpdate={victim.Entry.MaxUpdateMs:F3} ms path=\"{victim.Entry.Key.FilePath}\"");
+                $"Video source cache evict backend={victim.Entry.Key.Backend} reason=probe-overflow probeEntries={probeCount} updates={victim.Entry.UpdateCount} maxUpdate={victim.Entry.MaxUpdateMs:F3} ms path=\"{victim.Entry.Key.FilePath}\"");
             if (list.Count == 0)
                 Entries.Remove(victim.Key);
         }
