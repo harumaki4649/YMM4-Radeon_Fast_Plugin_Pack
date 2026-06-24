@@ -52,7 +52,7 @@ internal sealed class FastFileSourceSettings
 
     public bool PreferMediaFoundationVideo { get; set; } = false;
 
-    public bool EnableNativeVideoDecoder { get; set; } = false;
+    public bool EnableNativeVideoDecoder { get; set; } = true;
 
     public bool EnableAmfVideoDecoder { get; set; } = true;
 
