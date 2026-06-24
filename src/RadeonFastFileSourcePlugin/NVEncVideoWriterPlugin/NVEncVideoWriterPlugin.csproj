@@ -77,23 +77,22 @@
 
   <!-- ビルド後に YMM4 のプラグインフォルダに dll をコピーする -->
   <Target Name="BuildNativeVideoArtifacts" BeforeTargets="Build">
-    <Exec Command="&quot;$(ProjectDir)Native\build_native.cmd&quot;" WorkingDirectory="$(ProjectDir)Native" Condition="Exists('$(ProjectDir)Native\build_native.cmd')" />
+    <Exec Command="&quot;$(ProjectDir)Native\build_native.cmd&quot; $(Configuration)" WorkingDirectory="$(ProjectDir)Native" Condition="Exists('$(ProjectDir)Native\build_native.cmd')" />
   </Target>
 
   <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build">
     <PropertyGroup>
       <Ymm4PluginDir>$(YMM4DirPath)user\plugin\$(AssemblyName)\</Ymm4PluginDir>
       <AmfNativeDll>$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
+      <NativeDllDir Condition="Exists('$(ProjectDir)Native\build\$(Configuration)\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\$(Configuration)\</NativeDllDir>
+      <NativeDllDir Condition="'$(NativeDllDir)' == '' And Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\Release\</NativeDllDir>
     </PropertyGroup>
     <MakeDir Directories="$(Ymm4PluginDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
     <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(AmfNativeDll)')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\Release\RadeonFastNativeVideo.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeVideo.dll')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeAudio.dll') And !Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeImage.dll') And !Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeImage.dll')" />
-    <Copy SourceFiles="$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeVideo.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)Native\build\RelWithDebInfo\RadeonFastNativeVideo.dll') And !Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeVideo.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeAudio.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeImage.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeVideo.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeVideo.dll')" />
     <ItemGroup>
       <VipsRuntimeFiles Include="$(ProjectDir)..\vendor\vips-dev-8.18\bin\**\*.dll" Condition="Exists('$(ProjectDir)..\vendor\vips-dev-8.18\bin\libvips-42.dll')" />
     </ItemGroup>

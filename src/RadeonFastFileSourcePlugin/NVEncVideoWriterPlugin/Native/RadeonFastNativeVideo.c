@@ -26,6 +26,11 @@ typedef struct AVInputFormat AVInputFormat;
 typedef struct AVDictionary AVDictionary;
 typedef struct AVCodec AVCodec;
 
+typedef struct AVCodecNameView
+{
+    const char* name;
+} AVCodecNameView;
+
 typedef struct AVCodecHWConfig
 {
     int pix_fmt;
@@ -204,6 +209,7 @@ RF_EXPORT int rf_video_probe(const wchar_t* path, const wchar_t* ffmpegDirectory
     }
 
     result->streamIndex = streamIndex;
+    rf_copy(result->codecName, sizeof(result->codecName), ((const AVCodecNameView*)decoder)->name);
     for (int i = 0; i < 64; i++)
     {
         const AVCodecHWConfig* config = avcodec_get_hw_config_fn(decoder, i);
