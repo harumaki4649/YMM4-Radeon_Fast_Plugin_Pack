@@ -230,6 +230,13 @@ internal static class WarmupManager
         if (!settings.EnableProjectWarmup || !settings.EnableVideoDecodeWarmup)
             return;
 
+        if (!settings.EnableUnsafeVideoDecodeWarmupWithGraphicsDevice)
+        {
+            FastFileSourceLog.WriteDetailed(
+                $"Video decode warmup skipped reason=graphics-device-warmup-disabled current=\"{currentFilePath}\"");
+            return;
+        }
+
         var entries = PrioritizeCurrentFile(GetEntries("video", settings), currentFilePath)
             .Take(settings.VideoDecodeWarmupMaxQueuedPerCall)
             .ToList();

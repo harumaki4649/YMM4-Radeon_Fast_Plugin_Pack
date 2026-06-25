@@ -77,3 +77,5 @@ src/RadeonFastPsdTachiePlugin/YukkuriMovieMaker_v4_Lite/
 src/RadeonAmfPlugin/YukkuriMovieMaker_v4_Lite/
 LOCAL/
 src/RadeonFastFileSourcePlugin/VIDEO_DECODER_ANALYSIS.md
+.aider*
+.env

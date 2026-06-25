@@ -60,6 +60,16 @@ internal sealed class FastFileSourceSettings
 
     public bool NativeVideoDecoderFallbackToManaged { get; set; } = true;
 
+    public bool EnableAmfVideoRandomAccessFallback { get; set; } = true;
+
+    public double AmfVideoFallbackLargeJumpMs { get; set; } = 120.0;
+
+    public int AmfVideoFallbackLargeJumpCount { get; set; } = 2;
+
+    public int AmfVideoFallbackBackwardSeekCount { get; set; } = 1;
+
+    public double AmfVideoFallbackInitialSeekSeconds { get; set; } = 1.0;
+
     public bool EnableAdaptiveVideoBackend { get; set; } = true;
 
     public int AdaptiveVideoMinFileMB { get; set; } = 16;
@@ -107,6 +117,8 @@ internal sealed class FastFileSourceSettings
     public int ImageDecodeWarmupMaxConcurrent { get; set; } = 1;
 
     public bool EnableVideoDecodeWarmup { get; set; } = false;
+
+    public bool EnableUnsafeVideoDecodeWarmupWithGraphicsDevice { get; set; } = false;
 
     public int VideoDecodeWarmupMaxConcurrent { get; set; } = 1;
 
@@ -254,6 +266,10 @@ internal static class FastFileSourceSettingsStore
             settings.ImageCpuDecodeCacheMaxMemoryMB = Math.Clamp(settings.ImageCpuDecodeCacheMaxMemoryMB, 64, 32768);
             settings.ImageCpuDecodeCacheMaxSingleFileMB = Math.Clamp(settings.ImageCpuDecodeCacheMaxSingleFileMB, 1, 8192);
             settings.AdaptiveVideoMinFileMB = Math.Clamp(settings.AdaptiveVideoMinFileMB, 0, 8192);
+            settings.AmfVideoFallbackLargeJumpMs = Math.Clamp(settings.AmfVideoFallbackLargeJumpMs, 0, 60000);
+            settings.AmfVideoFallbackLargeJumpCount = Math.Clamp(settings.AmfVideoFallbackLargeJumpCount, 1, 1000);
+            settings.AmfVideoFallbackBackwardSeekCount = Math.Clamp(settings.AmfVideoFallbackBackwardSeekCount, 1, 1000);
+            settings.AmfVideoFallbackInitialSeekSeconds = Math.Clamp(settings.AmfVideoFallbackInitialSeekSeconds, 0, 3600);
             settings.AdaptiveVideoLargeJumpMs = Math.Clamp(settings.AdaptiveVideoLargeJumpMs, 0, 60000);
             settings.AdaptiveVideoSlowUpdateMs = Math.Clamp(settings.AdaptiveVideoSlowUpdateMs, 0, 10000);
             settings.AdaptiveVideoSlowJumpCount = Math.Clamp(settings.AdaptiveVideoSlowJumpCount, 1, 1000);
@@ -335,6 +351,11 @@ internal static class FastFileSourceSettingsStore
             settings.EnableAmfVideoDecoder,
             settings.EnableFfmpegNativeVideoDecoder,
             settings.NativeVideoDecoderFallbackToManaged,
+            settings.EnableAmfVideoRandomAccessFallback,
+            settings.AmfVideoFallbackLargeJumpMs,
+            settings.AmfVideoFallbackLargeJumpCount,
+            settings.AmfVideoFallbackBackwardSeekCount,
+            settings.AmfVideoFallbackInitialSeekSeconds,
             settings.PreferMediaFoundationVideo,
             settings.EnableAdaptiveVideoBackend,
             settings.AdaptiveVideoMinFileMB,
@@ -360,6 +381,7 @@ internal static class FastFileSourceSettingsStore
             settings.EnableImageDecodeWarmup,
             settings.ImageDecodeWarmupMaxConcurrent,
             settings.EnableVideoDecodeWarmup,
+            settings.EnableUnsafeVideoDecodeWarmupWithGraphicsDevice,
             settings.VideoDecodeWarmupMaxConcurrent,
             settings.VideoDecodeWarmupFrames,
             settings.EnableVideoInitialFrameWarmup,
@@ -421,10 +443,10 @@ internal static class FastFileSourceSettingsStore
             $"audioMemMB={settings.AudioCacheMaxMemoryMB} audioSingleMB={settings.AudioCacheMaxSingleFileMB} audioMaxSeconds={settings.AudioCacheMaxDurationSeconds:F0} " +
             $"audioMinOpen={settings.AudioCacheMinOpenCount} audioChunkSamples={settings.AudioCacheReadChunkSamples} audioDecoders={settings.AudioCacheMaxConcurrentDecodes} " +
             $"imageCache={settings.EnableImageBitmapCache} nativeImage={settings.EnableNativeImageDecoder} imageCpuCache={settings.EnableImageCpuDecodeCache} imageMemMB={settings.ImageCacheMaxMemoryMB} imageSingleMB={settings.ImageCacheMaxSingleFileMB} imageCpuMemMB={settings.ImageCpuDecodeCacheMaxMemoryMB} imageCpuSingleMB={settings.ImageCpuDecodeCacheMaxSingleFileMB} " +
-            $"nativeVideo={settings.EnableNativeVideoDecoder} nativeAmfVideo={settings.EnableAmfVideoDecoder} nativeFfmpegVideo={settings.EnableFfmpegNativeVideoDecoder} nativeVideoManagedFallback={settings.NativeVideoDecoderFallbackToManaged} preferMFVideo={settings.PreferMediaFoundationVideo} adaptiveVideo={settings.EnableAdaptiveVideoBackend} adaptiveVideoMinMB={settings.AdaptiveVideoMinFileMB} adaptiveVideoJumpMs={settings.AdaptiveVideoLargeJumpMs:F1} adaptiveVideoSlowMs={settings.AdaptiveVideoSlowUpdateMs:F1} adaptiveVideoSlowJumps={settings.AdaptiveVideoSlowJumpCount} adaptiveVideoPreferenceSec={settings.AdaptiveVideoPreferenceSeconds} videoSourceCache={settings.EnableVideoSourceCache} videoEntries={settings.VideoSourceCacheMaxEntries} videoProbeEntries={settings.VideoSourceCacheMaxProbeEntries} " +
+            $"nativeVideo={settings.EnableNativeVideoDecoder} nativeAmfVideo={settings.EnableAmfVideoDecoder} nativeFfmpegVideo={settings.EnableFfmpegNativeVideoDecoder} nativeVideoManagedFallback={settings.NativeVideoDecoderFallbackToManaged} amfRandomFallback={settings.EnableAmfVideoRandomAccessFallback} amfFallbackJumpMs={settings.AmfVideoFallbackLargeJumpMs:F1} amfFallbackJumpCount={settings.AmfVideoFallbackLargeJumpCount} amfFallbackBackwardCount={settings.AmfVideoFallbackBackwardSeekCount} amfFallbackInitialSeekSec={settings.AmfVideoFallbackInitialSeekSeconds:F3} preferMFVideo={settings.PreferMediaFoundationVideo} adaptiveVideo={settings.EnableAdaptiveVideoBackend} adaptiveVideoMinMB={settings.AdaptiveVideoMinFileMB} adaptiveVideoJumpMs={settings.AdaptiveVideoLargeJumpMs:F1} adaptiveVideoSlowMs={settings.AdaptiveVideoSlowUpdateMs:F1} adaptiveVideoSlowJumps={settings.AdaptiveVideoSlowJumpCount} adaptiveVideoPreferenceSec={settings.AdaptiveVideoPreferenceSeconds} videoSourceCache={settings.EnableVideoSourceCache} videoEntries={settings.VideoSourceCacheMaxEntries} videoProbeEntries={settings.VideoSourceCacheMaxProbeEntries} " +
             $"videoTtlSec={settings.VideoSourceCacheTtlSeconds} videoMinUpdates={settings.VideoSourceCacheMinUpdatesToKeep} videoSlowKeepMs={settings.VideoSourceCacheMinSlowUpdateToKeepMs:F1} videoLargeMB={settings.VideoSourceCachePreferLargeFileMB} " +
             $"videoMaxFirstSeekJumpSec={settings.VideoSourceCacheMaxFirstSeekJumpSeconds:F1} videoMinReuseAgeMs={settings.VideoSourceCacheMinReuseAgeMs} videoDeviceKey={settings.VideoSourceCacheUseDeviceContextKey} videoWaitWarmupMs={settings.VideoSourceCacheWaitForWarmupMs} " +
-            $"warmup={settings.EnableProjectWarmup} warmAudio={settings.EnableAudioWarmup} warmImage={settings.EnableImageWarmup} warmVideoFile={settings.EnableVideoFileWarmup} imageDecodeWarmup={settings.EnableImageDecodeWarmup} imageDecodeTasks={settings.ImageDecodeWarmupMaxConcurrent} videoDecodeWarmup={settings.EnableVideoDecodeWarmup} videoDecodeTasks={settings.VideoDecodeWarmupMaxConcurrent} videoDecodeFrames={settings.VideoDecodeWarmupFrames} videoInitialFrameWarmup={settings.EnableVideoInitialFrameWarmup} videoDecodeQueuedPerCall={settings.VideoDecodeWarmupMaxQueuedPerCall} warmFiles={settings.WarmupMaxFiles} warmTasks={settings.WarmupMaxConcurrentTasks} warmImageMB={settings.WarmupMaxImageFileMB} warmVideoMB={settings.WarmupMaxVideoFileMB} warmBufferMB={settings.WarmupReadBufferMB} " +
+            $"warmup={settings.EnableProjectWarmup} warmAudio={settings.EnableAudioWarmup} warmImage={settings.EnableImageWarmup} warmVideoFile={settings.EnableVideoFileWarmup} imageDecodeWarmup={settings.EnableImageDecodeWarmup} imageDecodeTasks={settings.ImageDecodeWarmupMaxConcurrent} videoDecodeWarmup={settings.EnableVideoDecodeWarmup} unsafeVideoDecodeWarmup={settings.EnableUnsafeVideoDecodeWarmupWithGraphicsDevice} videoDecodeTasks={settings.VideoDecodeWarmupMaxConcurrent} videoDecodeFrames={settings.VideoDecodeWarmupFrames} videoInitialFrameWarmup={settings.EnableVideoInitialFrameWarmup} videoDecodeQueuedPerCall={settings.VideoDecodeWarmupMaxQueuedPerCall} warmFiles={settings.WarmupMaxFiles} warmTasks={settings.WarmupMaxConcurrentTasks} warmImageMB={settings.WarmupMaxImageFileMB} warmVideoMB={settings.WarmupMaxVideoFileMB} warmBufferMB={settings.WarmupReadBufferMB} " +
             $"timelineToolWarmup={settings.EnableTimelineToolWarmup} autoProjectWarmup={settings.EnableAutoProjectWarmup} internalProbe={settings.EnableInternalApiProbe} " +
             $"injectionProfiler={settings.EnableInjectionProfiler} injectionArgs={settings.EnableInjectionArgumentLog} injectionSlowMs={settings.InjectionSlowThresholdMs:F1} injectionRenderSlowMs={settings.InjectionRenderSlowThresholdMs:F1} injectionSummaryInterval={settings.InjectionSummaryInterval} " +
             $"slowArgLog={settings.EnableSlowArgumentPropertyLog} slowArgThresholdMs={settings.SlowArgumentPropertyLogThresholdMs:F1} slowArgMaxPerType={settings.SlowArgumentPropertyMaxPerType} slowArgWarmup={settings.EnableSlowArgumentPathWarmup} " +

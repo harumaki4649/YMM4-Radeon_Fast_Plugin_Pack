@@ -201,6 +201,7 @@ internal sealed class TimingVideoFileSource(
     Func<IVideoFileSource>? recreate) : IVideoFileSource
 {
     private IVideoFileSource inner = inner;
+    private string currentBackend = backend;
     private int updateCount;
     private int slowUpdateCount;
     private int backwardSeekCount;
@@ -211,6 +212,7 @@ internal sealed class TimingVideoFileSource(
     private readonly int cachedSourceUpdateCount = cachedUpdateCount;
     private readonly double cachedSourceMaxUpdateMs = cachedMaxUpdateMs;
     private TimeSpan? lastUpdateTime = cachedLastUpdateTime;
+    private bool switchedBackend;
     private bool disposed;
 
     public TimeSpan Duration => inner.Duration;
@@ -231,9 +233,9 @@ internal sealed class TimingVideoFileSource(
             if (firstJumpSeconds > maxJumpSeconds && recreate is not null)
             {
                 FastFileSourceLog.Write(
-                    $"Video source cache bypass backend={backend} reason=far-first-seek jumpSec={firstJumpSeconds:F3} limitSec={maxJumpSeconds:F3} time={time} cachedLast={cachedSourceLastUpdateTime.Value} path=\"{filePath}\"");
+                    $"Video source cache bypass backend={currentBackend} reason=far-first-seek jumpSec={firstJumpSeconds:F3} limitSec={maxJumpSeconds:F3} time={time} cachedLast={cachedSourceLastUpdateTime.Value} path=\"{filePath}\"");
                 inner.Dispose();
-                using var _ = FastFileSourceLog.Measure($"Video {backend} recreate after cache bypass");
+                using var _ = FastFileSourceLog.Measure($"Video {currentBackend} recreate after cache bypass");
                 inner = recreate();
             }
         }
@@ -253,20 +255,21 @@ internal sealed class TimingVideoFileSource(
             backwardSeekCount++;
         if (previousTime.HasValue && Math.Abs(deltaMs) > 100.0)
             largeJumpCount++;
-        VideoBackendAdaptivePreference.RecordUpdate(filePath, backend, elapsedMs, deltaMs, fromCache);
+        TrySwitchBackendForRandomAccess(time, deltaMs);
+        VideoBackendAdaptivePreference.RecordUpdate(filePath, currentBackend, elapsedMs, deltaMs, fromCache);
 
         if (elapsedMs >= 3.0)
         {
             slowUpdateCount++;
-            FastFileSourceLog.Write($"Video Update slow backend={backend} cached={fromCache} count={updateCount} slow={slowUpdateCount} frame={frameIndex} time={time} deltaMs={deltaMs:F3} elapsed={elapsedMs:F3} ms jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
+            FastFileSourceLog.Write($"Video Update slow backend={currentBackend} cached={fromCache} count={updateCount} slow={slowUpdateCount} frame={frameIndex} time={time} deltaMs={deltaMs:F3} elapsed={elapsedMs:F3} ms jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
         }
         else if (updateCount == 1)
         {
-            FastFileSourceLog.Write($"Video first Update backend={backend} cached={fromCache} frame={frameIndex} time={time} elapsed={elapsedMs:F3} ms duration={Duration} path=\"{filePath}\"");
+            FastFileSourceLog.Write($"Video first Update backend={currentBackend} cached={fromCache} frame={frameIndex} time={time} elapsed={elapsedMs:F3} ms duration={Duration} path=\"{filePath}\"");
         }
         else if (updateCount % 500 == 0)
         {
-            FastFileSourceLog.Write($"Video Update stats backend={backend} cached={fromCache} count={updateCount} avg={totalUpdateMs / updateCount:F3} ms max={maxUpdateMs:F3} ms slow={slowUpdateCount} jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
+            FastFileSourceLog.Write($"Video Update stats backend={currentBackend} cached={fromCache} count={updateCount} avg={totalUpdateMs / updateCount:F3} ms max={maxUpdateMs:F3} ms slow={slowUpdateCount} jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
         }
     }
 
@@ -277,15 +280,72 @@ internal sealed class TimingVideoFileSource(
 
         disposed = true;
         var avg = updateCount > 0 ? totalUpdateMs / updateCount : 0;
-        FastFileSourceLog.Write($"Video dispose backend={backend} cached={fromCache} updates={updateCount} avg={avg:F3} ms max={maxUpdateMs:F3} ms slow={slowUpdateCount} jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
+        FastFileSourceLog.Write($"Video dispose backend={currentBackend} cached={fromCache} updates={updateCount} avg={avg:F3} ms max={maxUpdateMs:F3} ms slow={slowUpdateCount} jumps={largeJumpCount} backward={backwardSeekCount} path=\"{filePath}\"");
         if (fromCache && updateCount == 0)
         {
             inner.Dispose();
             return;
         }
 
-        if (!VideoSourceCache.TryReturn(devices, filePath, backend, inner, updateCount, maxUpdateMs, lastUpdateTime))
+        if (!VideoSourceCache.TryReturn(devices, filePath, currentBackend, inner, updateCount, maxUpdateMs, lastUpdateTime))
             inner.Dispose();
+    }
+
+    private void TrySwitchBackendForRandomAccess(TimeSpan time, double deltaMs)
+    {
+        if (switchedBackend || fromCache || !currentBackend.Equals("AMF-D3D", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var settings = FastFileSourceSettingsStore.Current;
+        if (!settings.EnableAmfVideoRandomAccessFallback)
+            return;
+
+        var initialSeekThreshold = TimeSpan.FromSeconds(settings.AmfVideoFallbackInitialSeekSeconds);
+        if (updateCount == 1 && time >= initialSeekThreshold)
+        {
+            SwitchBackendToFfmpeg(
+                time,
+                $"initial-seek threshold={initialSeekThreshold.TotalSeconds:F3}s actual={time.TotalSeconds:F3}s");
+            return;
+        }
+
+        if (updateCount > 32)
+            return;
+
+        var largeJumpThresholdMs = settings.AmfVideoFallbackLargeJumpMs;
+        var hitLargeJump = Math.Abs(deltaMs) >= largeJumpThresholdMs;
+        var hitBackwardSeek = deltaMs < -0.5;
+        if (!hitLargeJump && !hitBackwardSeek)
+            return;
+
+        if (largeJumpCount < settings.AmfVideoFallbackLargeJumpCount &&
+            backwardSeekCount < settings.AmfVideoFallbackBackwardSeekCount)
+            return;
+
+        SwitchBackendToFfmpeg(
+            time,
+            $"random-access deltaMs={deltaMs:F3} largeJumpCount={largeJumpCount} backwardCount={backwardSeekCount}");
+    }
+
+    private void SwitchBackendToFfmpeg(TimeSpan time, string reason)
+    {
+        try
+        {
+            using var _ = FastFileSourceLog.Measure("Video AMF-D3D fallback recreate");
+            var replacement = new FFmpegVideoFileSource(devices, filePath);
+            replacement.Update(time);
+            inner.Dispose();
+            inner = replacement;
+            currentBackend = "FFmpeg";
+            switchedBackend = true;
+            FastFileSourceLog.Write(
+                $"Video backend fallback from=AMF-D3D to=FFmpeg reason={reason} time={time} path=\"{filePath}\"");
+        }
+        catch (Exception ex)
+        {
+            FastFileSourceLog.Write(
+                $"Video backend fallback failed from=AMF-D3D to=FFmpeg reason={reason} ex={ex.GetType().Name}: {ex.Message} time={time} path=\"{filePath}\"");
+        }
     }
 }
 

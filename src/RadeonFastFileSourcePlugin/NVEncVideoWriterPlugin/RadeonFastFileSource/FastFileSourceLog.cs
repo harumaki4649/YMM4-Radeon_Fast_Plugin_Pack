@@ -25,7 +25,9 @@ internal static class FastFileSourceLog
     [ModuleInitializer]
     public static void ModuleInit()
     {
+        var nativeResolverStatus = NativeDllResolver.Initialize();
         Write($"Plugin module loaded assembly={Assembly.GetExecutingAssembly().Location} baseDir={AppContext.BaseDirectory}");
+        Write($"Native DLL resolver ready dirs={nativeResolverStatus}");
         ThreadPoolTuner.TryApply();
         RadeonFastAudioFileSourcePlugin.EnsureManifestAudioPcmWarmup();
         WarmupManager.EnsureManifestImageCpuWarmup();

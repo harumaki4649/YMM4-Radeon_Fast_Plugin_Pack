@@ -22,11 +22,11 @@ target_include_directories(RadeonFastNativeAudio PRIVATE
 )
 
 if(MSVC)
-    target_compile_options(RadeonFastNativeAudio PRIVATE /O2 /utf-8)
+    target_compile_options(RadeonFastNativeAudio PRIVATE /utf-8 $<$<NOT:$<CONFIG:Debug>>:/O2>)
     target_compile_definitions(RadeonFastNativeAudio PRIVATE _CRT_SECURE_NO_WARNINGS)
-    target_compile_options(RadeonFastNativeImage PRIVATE /O2 /utf-8)
+    target_compile_options(RadeonFastNativeImage PRIVATE /utf-8 $<$<NOT:$<CONFIG:Debug>>:/O2>)
     target_compile_definitions(RadeonFastNativeImage PRIVATE _CRT_SECURE_NO_WARNINGS)
-    target_compile_options(RadeonFastNativeVideo PRIVATE /O2 /utf-8)
+    target_compile_options(RadeonFastNativeVideo PRIVATE /utf-8 $<$<NOT:$<CONFIG:Debug>>:/O2>)
     target_compile_definitions(RadeonFastNativeVideo PRIVATE _CRT_SECURE_NO_WARNINGS)
 endif()
 
