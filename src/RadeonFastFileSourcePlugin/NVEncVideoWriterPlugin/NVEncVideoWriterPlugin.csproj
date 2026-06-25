@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UseWPF>false</UseWPF>
@@ -77,29 +77,40 @@
 
   <!-- ビルド後に YMM4 のプラグインフォルダに dll をコピーする -->
   <Target Name="BuildNativeVideoArtifacts" BeforeTargets="Build">
-    <Exec Command="&quot;$(ProjectDir)Native\build_native.cmd&quot; $(Configuration)" WorkingDirectory="$(ProjectDir)Native" Condition="Exists('$(ProjectDir)Native\build_native.cmd')" />
+    <Exec Command="&quot;$(ProjectDir)Native\build_native.cmd&quot; $(Configuration)" WorkingDirectory="$(ProjectDir)Native" Condition="Exists('$(ProjectDir)Native\build_native.cmd') And '$(SkipNativeBuild)' != 'true'" ContinueOnError="true" />
   </Target>
 
-  <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build">
+  <Target Name="CopyToYmm4PluginDirectory" AfterTargets="Build" Condition="'$(SkipYmm4Copy)' != 'true'">
     <PropertyGroup>
       <Ymm4PluginDir>$(YMM4DirPath)user\plugin\$(AssemblyName)\</Ymm4PluginDir>
+      <NativeRuntimeDir>$(YMM4DirPath)user\$(AssemblyName)\native\</NativeRuntimeDir>
       <AmfNativeDll>$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
+      <AmfNativeDll Condition="!Exists('$(AmfNativeDll)') And Exists('$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll')">$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll</AmfNativeDll>
       <NativeDllDir Condition="Exists('$(ProjectDir)Native\build\$(Configuration)\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\$(Configuration)\</NativeDllDir>
       <NativeDllDir Condition="'$(NativeDllDir)' == '' And Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\Release\</NativeDllDir>
     </PropertyGroup>
     <MakeDir Directories="$(Ymm4PluginDir)" />
+    <MakeDir Directories="$(NativeRuntimeDir)" />
     <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" />
-    <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(AmfNativeDll)')" />
-    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeAudio.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeAudio.dll')" />
-    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeImage.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeImage.dll')" />
-    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeVideo.dll" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeVideo.dll')" />
+    <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(NativeRuntimeDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(AmfNativeDll)')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeAudio.dll" DestinationFolder="$(NativeRuntimeDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeAudio.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeImage.dll" DestinationFolder="$(NativeRuntimeDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeImage.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeVideo.dll" DestinationFolder="$(NativeRuntimeDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(NativeDllDir)RadeonFastNativeVideo.dll')" />
     <ItemGroup>
       <VipsRuntimeFiles Include="$(ProjectDir)..\vendor\vips-dev-8.18\bin\**\*.dll" Condition="Exists('$(ProjectDir)..\vendor\vips-dev-8.18\bin\libvips-42.dll')" />
+      <OldPluginVipsRuntimeFiles Include="@(VipsRuntimeFiles->'$(Ymm4PluginDir)%(RecursiveDir)%(Filename)%(Extension)')" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)AmfNative.dll" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)RadeonFastNativeAudio.dll" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)RadeonFastNativeImage.dll" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)RadeonFastNativeVideo.dll" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)RadeonAmfPlugin.dll" />
+      <OldPluginNativeFiles Include="$(Ymm4PluginDir)NVEncVideoWriterPlugin.dll" />
     </ItemGroup>
-    <Copy SourceFiles="@(VipsRuntimeFiles)" DestinationFiles="@(VipsRuntimeFiles->'$(Ymm4PluginDir)%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" Condition="'@(VipsRuntimeFiles)' != ''" />
+    <Copy SourceFiles="@(VipsRuntimeFiles)" DestinationFiles="@(VipsRuntimeFiles->'$(NativeRuntimeDir)%(RecursiveDir)%(Filename)%(Extension)')" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="true" Condition="'@(VipsRuntimeFiles)' != ''" />
     <Copy SourceFiles="$(ProjectDir)..\README.md" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\README.md')" />
     <Copy SourceFiles="$(ProjectDir)..\LICENSE" DestinationFolder="$(Ymm4PluginDir)" OverwriteReadOnlyFiles="true" SkipUnchangedFiles="false" Condition="Exists('$(ProjectDir)..\LICENSE')" />
-    <Delete Files="$(Ymm4PluginDir)RadeonAmfPlugin.dll;$(Ymm4PluginDir)NVEncVideoWriterPlugin.dll" TreatErrorsAsWarnings="true" />
+    <Delete Files="@(OldPluginNativeFiles);@(OldPluginVipsRuntimeFiles)" TreatErrorsAsWarnings="true" />
+    <RemoveDir Directories="$(Ymm4PluginDir)vips-modules-8.18" Condition="Exists('$(Ymm4PluginDir)vips-modules-8.18')" />
   </Target>
 
 </Project>
