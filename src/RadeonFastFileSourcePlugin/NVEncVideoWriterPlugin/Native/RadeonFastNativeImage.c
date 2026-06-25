@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <locale.h>
 #include <windows.h>
 
 #if defined(_WIN32)
@@ -61,7 +62,29 @@ static int rf_image_ensure_vips(void)
     LONG state = InterlockedCompareExchange(&g_vips_state, 1, 0);
     if (state == 0)
     {
-        if (VIPS_INIT("RadeonFastFileSourcePlugin"))
+        /*
+         * libvips は初期化時に gettext/bindtextdomain を経由して
+         * setlocale(LC_ALL, "") を呼び出すことがある。
+         * これによりプロセス全体の C ランタイムロケールが変更され、
+         * ホスト(YMM4)の Rhubarb/PocketSphinx がパス変換に
+         * "Unicode文字のマッピングがターゲットのマルチバイトコードページにありません"
+         * エラーでクラッシュする。
+         * VIPS_INIT の前後でロケールを保存・復元してこの副作用を防ぐ。
+         */
+        char* saved_locale = NULL;
+        const char* current_locale = setlocale(LC_ALL, NULL);
+        if (current_locale != NULL)
+            saved_locale = _strdup(current_locale);
+
+        int vips_ok = (VIPS_INIT("RadeonFastFileSourcePlugin") == 0);
+
+        if (saved_locale != NULL)
+        {
+            setlocale(LC_ALL, saved_locale);
+            free(saved_locale);
+        }
+
+        if (!vips_ok)
         {
             rf_image_set_error(vips_error_buffer());
             vips_error_clear();

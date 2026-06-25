@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <locale.h>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -157,13 +158,36 @@ RF_EXPORT int rf_video_probe(const wchar_t* path, const wchar_t* ffmpegDirectory
         return -4;
     }
 
+    /*
+     * FFmpeg DLL の読み込みや初期化が C ランタイムのロケールを
+     * 副作用的に変更しないよう、前後で保存・復元する。
+     * ホストプロセス(YMM4)の Rhubarb/PocketSphinx がロケール変更に
+     * よるパス変換エラーでクラッシュするのを防ぐ。
+     */
+    char* saved_locale = NULL;
+    const char* current_locale = setlocale(LC_ALL, NULL);
+    if (current_locale != NULL)
+        saved_locale = _strdup(current_locale);
+
     HMODULE avutil = rf_load_library_from_dir(ffmpegDirectory, L"avutil-60.dll");
     HMODULE avcodec = rf_load_library_from_dir(ffmpegDirectory, L"avcodec-62.dll");
     HMODULE avformat = rf_load_library_from_dir(ffmpegDirectory, L"avformat-62.dll");
     if (avutil == NULL || avcodec == NULL || avformat == NULL)
     {
+        if (saved_locale != NULL)
+        {
+            setlocale(LC_ALL, saved_locale);
+            free(saved_locale);
+        }
         rf_result_message(result, "ffmpeg dlls not found");
         return -5;
+    }
+
+    /* FFmpeg DLL の読み込み完了後、ロケールを復元 */
+    if (saved_locale != NULL)
+    {
+        setlocale(LC_ALL, saved_locale);
+        free(saved_locale);
     }
 
     p_avformat_open_input avformat_open_input_fn = (p_avformat_open_input)rf_get_proc(avformat, "avformat_open_input");
