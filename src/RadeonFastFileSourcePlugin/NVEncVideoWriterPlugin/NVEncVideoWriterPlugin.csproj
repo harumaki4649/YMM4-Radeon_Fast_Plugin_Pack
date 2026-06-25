@@ -123,7 +123,7 @@
     <PropertyGroup>
       <DistRoot>$(ProjectDir)dist\</DistRoot>
       <DistPluginDir>$(DistRoot)plugin\$(AssemblyName)\</DistPluginDir>
-      <DistNativeDir>$(DistRoot)$(AssemblyName)\native\</DistNativeDir>
+      <DistNativeDir>$(DistPluginDir)native\</DistNativeDir>
       <AmfNativeDll Condition="'$(AmfNativeDll)' == ''">$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
       <AmfNativeDll Condition="!Exists('$(AmfNativeDll)') And Exists('$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll')">$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll</AmfNativeDll>
       <NativeDllDir Condition="'$(NativeDllDir)' == '' And Exists('$(ProjectDir)Native\build\$(Configuration)\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\$(Configuration)\</NativeDllDir>
