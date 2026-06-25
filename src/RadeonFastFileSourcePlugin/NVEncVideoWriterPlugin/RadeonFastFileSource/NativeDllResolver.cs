@@ -20,18 +20,29 @@ internal static class NativeDllResolver
         if (Interlocked.Exchange(ref initialized, 1) != 0)
             return "already-initialized";
 
-        var assembly = Assembly.GetExecutingAssembly();
-        var nativeDirs = GetNativeDirectories(assembly)
-            .Where(Directory.Exists)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
+        // .NET 10 で SetDllImportResolver が二重登録やタイミング不良で
+        // InvalidOperationException を投げることがある。アセンブリ読み込み中
+        // (ModuleInitializer 由来) の例外はホストクラッシュに直結するため、
+        // リゾルバ登録の失敗は致命扱いせず既定の検索動作にフォールバックさせる。
+        try
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var nativeDirs = GetNativeDirectories(assembly)
+                .Where(Directory.Exists)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
 
-        ConfigureVipsModulePath(nativeDirs);
-        NativeLibrary.SetDllImportResolver(assembly, ResolveNativeDll);
+            ConfigureVipsModulePath(nativeDirs);
+            NativeLibrary.SetDllImportResolver(assembly, ResolveNativeDll);
 
-        return nativeDirs.Length == 0
-            ? "no-native-dir"
-            : string.Join(";", nativeDirs);
+            return nativeDirs.Length == 0
+                ? "no-native-dir"
+                : string.Join(";", nativeDirs);
+        }
+        catch (Exception)
+        {
+            return "resolver-register-failed";
+        }
     }
 
     private static IntPtr ResolveNativeDll(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)

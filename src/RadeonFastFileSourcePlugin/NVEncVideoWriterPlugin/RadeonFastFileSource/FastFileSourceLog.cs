@@ -25,15 +25,29 @@ internal static class FastFileSourceLog
     [ModuleInitializer]
     public static void ModuleInit()
     {
-        var nativeResolverStatus = NativeDllResolver.Initialize();
-        Write($"Plugin module loaded assembly={Assembly.GetExecutingAssembly().Location} baseDir={AppContext.BaseDirectory}");
-        Write($"Native DLL resolver ready dirs={nativeResolverStatus}");
-        ThreadPoolTuner.TryApply();
-        RadeonFastAudioFileSourcePlugin.EnsureManifestAudioPcmWarmup();
-        WarmupManager.EnsureManifestImageCpuWarmup();
-        PsdStateManifest.LogCandidatesAndQueueWarmup("module-load");
-        InternalInjectionProfiler.TryInitialize();
-        PsdInternalApiProbe.RunOnce("module-load");
+        // ModuleInitializer はアセンブリ読み込み時に実行され、ここで例外が抜けると
+        // TypeLoadException となりホスト(YMM4)のクラッシュに直結する。
+        // .NET 10 移行後にリフレクション/Harmony/ネイティブ解決のいずれかが失敗しても
+        // プラグイン読み込み自体は継続できるよう、すべての初期化を防御する。
+        try
+        {
+            var nativeResolverStatus = NativeDllResolver.Initialize();
+            Write($"Plugin module loaded assembly={Assembly.GetExecutingAssembly().Location} baseDir={AppContext.BaseDirectory}");
+            Write($"Native DLL resolver ready dirs={nativeResolverStatus}");
+            ThreadPoolTuner.TryApply();
+            RadeonFastAudioFileSourcePlugin.EnsureManifestAudioPcmWarmup();
+            WarmupManager.EnsureManifestImageCpuWarmup();
+            PsdStateManifest.LogCandidatesAndQueueWarmup("module-load");
+            InternalInjectionProfiler.TryInitialize();
+            PsdInternalApiProbe.RunOnce("module-load");
+        }
+        catch (Exception ex)
+        {
+            // ロギング自体が例外を投げないよう、直接コンソールではなくログチャネル経由で記録する。
+            // ログチャネル経由も失敗しうるため、最後は握りつぶす。
+            try { Write($"Plugin module init failed: {ex.GetType().Name}: {ex.Message}"); }
+            catch { /* must never throw out of ModuleInitializer */ }
+        }
     }
 
     public static void Write(string message)
