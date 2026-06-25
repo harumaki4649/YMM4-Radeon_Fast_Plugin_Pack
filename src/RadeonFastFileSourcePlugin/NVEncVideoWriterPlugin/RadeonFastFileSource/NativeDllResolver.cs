@@ -32,6 +32,13 @@ internal static class NativeDllResolver
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToArray();
 
+            // ネイティブDLLの依存関係(libvips, glib, gobject 等)を解決するため、
+            // native ディレクトリを PATH と DLL 検索パスに追加する。
+            // NativeLibrary.Load は既定ではDLLの依存先を同じディレクトリから探さないため、
+            // AddDllDirectory と PATH の両方で明示的に登録する。
+            AddNativeDirsToPath(nativeDirs);
+            RegisterDllDirectories(nativeDirs);
+
             ConfigureVipsModulePath(nativeDirs);
             NativeLibrary.SetDllImportResolver(assembly, ResolveNativeDll);
 
@@ -51,11 +58,17 @@ internal static class NativeDllResolver
         if (!KnownNativeDlls.Contains(normalizedName))
             return IntPtr.Zero;
 
+        // UseDllDirectoryForDependencies を指定して、読み込んだDLLと同じ
+        // ディレクトリから依存DLL(libvips, glib 等)を探索させる。
+        var effectiveSearchPath = searchPath
+            | DllImportSearchPath.UseDllDirectoryForDependencies
+            | DllImportSearchPath.AssemblyDirectory;
+
         foreach (var dir in GetNativeDirectories(assembly))
         {
             var path = Path.Combine(dir, normalizedName);
             if (File.Exists(path))
-                return NativeLibrary.Load(path, assembly, searchPath);
+                return NativeLibrary.Load(path, assembly, effectiveSearchPath);
         }
 
         return IntPtr.Zero;
@@ -81,6 +94,58 @@ internal static class NativeDllResolver
             : fileName + ".dll";
     }
 
+    private static void AddNativeDirsToPath(string[] nativeDirs)
+    {
+        // ネイティブDLLの依存関係が解決されるよう、PATH の先頭に追加する。
+        // 既に含まれているディレクトリは重複追加しない。
+        var currentPath = Environment.GetEnvironmentVariable("PATH") ?? "";
+        var existing = currentPath.Split(';', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.TrimEnd('\\').TrimEnd('/'))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var toAdd = nativeDirs
+            .Where(d => !existing.Contains(d.TrimEnd('\\').TrimEnd('/')))
+            .ToArray();
+
+        if (toAdd.Length == 0)
+            return;
+
+        var newPath = string.Join(';', toAdd) + ";" + currentPath;
+        Environment.SetEnvironmentVariable("PATH", newPath);
+    }
+
+    private static void RegisterDllDirectories(string[] nativeDirs)
+    {
+        // AddDllDirectory を使って DLL 検索パスを登録する。
+        // これにより NativeLibrary.Load 時に依存DLL も native ディレクトリから
+        // 解決されるようになる (LOAD_LIBRARY_SEARCH_USER_DIRS と同等の効果)。
+        try
+        {
+            // SetDefaultDllDirectories で LOAD_LIBRARY_SEARCH_DEFAULT_DIRS を有効化し、
+            // その上で AddDllDirectory でユーザーディレクトリを追加する。
+            const uint LOAD_LIBRARY_SEARCH_DEFAULT_DIRS = 0x1000;
+            if (!SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS))
+                return;
+
+            foreach (var dir in nativeDirs)
+            {
+                var ptr = Marshal.StringToHGlobalUni(dir);
+                try
+                {
+                    AddDllDirectory(ptr);
+                }
+                finally
+                {
+                    Marshal.FreeHGlobal(ptr);
+                }
+            }
+        }
+        catch
+        {
+            // AddDllDirectory が失敗しても PATH 経由でフォールバック可能。
+        }
+    }
+
     private static void ConfigureVipsModulePath(IEnumerable<string> nativeDirs)
     {
         if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("VIPS_MODULEDIR")))
@@ -96,4 +161,11 @@ internal static class NativeDllResolver
             }
         }
     }
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SetDefaultDllDirectories(uint directoryFlags);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern IntPtr AddDllDirectory(IntPtr lpDirectoryName);
 }
