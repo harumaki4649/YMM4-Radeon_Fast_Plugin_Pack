@@ -113,4 +113,48 @@
     <RemoveDir Directories="$(Ymm4PluginDir)vips-modules-8.18" Condition="Exists('$(Ymm4PluginDir)vips-modules-8.18')" />
   </Target>
 
+  <!--
+    配布用パッケージを作成する。
+    dist\ フォルダに YMM4 の user\ にそのままコピーできる構造で出力する。
+    本体DLL + native DLL + vipsランタイム + README/LICENSE のみ。
+    SkipDistPackage=true でスキップ可能。
+  -->
+  <Target Name="CreateDistributionPackage" AfterTargets="Build" Condition="'$(SkipDistPackage)' != 'true'">
+    <PropertyGroup>
+      <DistRoot>$(ProjectDir)dist\</DistRoot>
+      <DistPluginDir>$(DistRoot)plugin\$(AssemblyName)\</DistPluginDir>
+      <DistNativeDir>$(DistRoot)$(AssemblyName)\native\</DistNativeDir>
+      <AmfNativeDll Condition="'$(AmfNativeDll)' == ''">$(ProjectDir)..\AmfNative\bin\$(Configuration)\AmfNative.dll</AmfNativeDll>
+      <AmfNativeDll Condition="!Exists('$(AmfNativeDll)') And Exists('$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll')">$(ProjectDir)..\AmfNative\bin\Release\AmfNative.dll</AmfNativeDll>
+      <NativeDllDir Condition="'$(NativeDllDir)' == '' And Exists('$(ProjectDir)Native\build\$(Configuration)\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\$(Configuration)\</NativeDllDir>
+      <NativeDllDir Condition="'$(NativeDllDir)' == '' And Exists('$(ProjectDir)Native\build\Release\RadeonFastNativeAudio.dll')">$(ProjectDir)Native\build\Release\</NativeDllDir>
+    </PropertyGroup>
+    <!-- 前回の dist をクリーンアップ -->
+    <RemoveDir Directories="$(DistRoot)" Condition="Exists('$(DistRoot)')" />
+    <MakeDir Directories="$(DistPluginDir)" />
+    <MakeDir Directories="$(DistNativeDir)" />
+    <!-- 本体DLL -->
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(DistPluginDir)" />
+    <!-- README / LICENSE -->
+    <Copy SourceFiles="$(ProjectDir)..\README.md" DestinationFolder="$(DistPluginDir)" Condition="Exists('$(ProjectDir)..\README.md')" />
+    <Copy SourceFiles="$(ProjectDir)..\LICENSE" DestinationFolder="$(DistPluginDir)" Condition="Exists('$(ProjectDir)..\LICENSE')" />
+    <!-- AmfNative -->
+    <Copy SourceFiles="$(AmfNativeDll)" DestinationFolder="$(DistNativeDir)" Condition="Exists('$(AmfNativeDll)')" />
+    <!-- Native DLL群 -->
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeAudio.dll" DestinationFolder="$(DistNativeDir)" Condition="Exists('$(NativeDllDir)RadeonFastNativeAudio.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeImage.dll" DestinationFolder="$(DistNativeDir)" Condition="Exists('$(NativeDllDir)RadeonFastNativeImage.dll')" />
+    <Copy SourceFiles="$(NativeDllDir)RadeonFastNativeVideo.dll" DestinationFolder="$(DistNativeDir)" Condition="Exists('$(NativeDllDir)RadeonFastNativeVideo.dll')" />
+    <!-- vips ランタイム DLL -->
+    <ItemGroup>
+      <DistVipsFiles Include="$(ProjectDir)..\vendor\vips-dev-8.18\bin\**\*.dll" Condition="Exists('$(ProjectDir)..\vendor\vips-dev-8.18\bin\libvips-42.dll')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DistVipsFiles)" DestinationFiles="@(DistVipsFiles->'$(DistNativeDir)%(RecursiveDir)%(Filename)%(Extension)')" Condition="'@(DistVipsFiles)' != ''" />
+    <!-- vips-modules (存在する場合) -->
+    <ItemGroup>
+      <DistVipsModules Include="$(ProjectDir)..\vendor\vips-dev-8.18\bin\vips-modules-8.18\**\*.*" Condition="Exists('$(ProjectDir)..\vendor\vips-dev-8.18\bin\vips-modules-8.18')" />
+    </ItemGroup>
+    <Copy SourceFiles="@(DistVipsModules)" DestinationFiles="@(DistVipsModules->'$(DistNativeDir)vips-modules-8.18\%(RecursiveDir)%(Filename)%(Extension)')" Condition="'@(DistVipsModules)' != ''" />
+    <Message Text="配布パッケージ作成完了: $(DistRoot)" Importance="high" />
+  </Target>
+
 </Project>
